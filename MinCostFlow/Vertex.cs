@@ -11,6 +11,7 @@ namespace MinCostFlow
         private static int nextSeq = 0;
         private string name;
         private int seq;
+        private bool isVisited;
         private List<Vertex> parents;
         private List<Vertex> children;
 
@@ -26,6 +27,7 @@ namespace MinCostFlow
         public List<Vertex> Parents { get => parents; set => parents = value; }
         public int Seq { get => seq; set => seq = value; }
         public static int NextSeq { get => nextSeq; set => nextSeq = value; }
+        public bool IsVisited { get => isVisited; set => isVisited = value; }
 
         public bool removeChild(Vertex child)
         {
@@ -39,12 +41,12 @@ namespace MinCostFlow
 
         public bool removeParent(Vertex parent)
         {
-            return this.children.Remove(parent);
+            return this.parents.Remove(parent);
         }
 
         public void addParent(Vertex parent)
         {
-            this.children.Add(parent);
+            this.parents.Add(parent);
         }
 
         public override bool Equals(object obj)
@@ -61,6 +63,11 @@ namespace MinCostFlow
         public override int GetHashCode()
         {
             return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
+        }
+
+        public override string ToString()
+        {
+            return this.name;
         }
     }
 }

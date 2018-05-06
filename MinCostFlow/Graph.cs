@@ -10,26 +10,22 @@ namespace MinCostFlow
     {
         private const int adjMatrixSize = 10;
 
-        private int numVertices;
-        private int numEdges;
         private List<Edge> listOfEdges;
         private List<Vertex> listOfVertices;
         private Dictionary<Vertex, List<Edge>> adjacencyList;
         private double[,] adjacencyMatrix;
+        // TODO implement it with secound instance of Graph
+        private double[,] residualGraph;
 
         public Graph()
         {
-            this.numEdges = 0;
-            this.numVertices = 0;
+
             this.listOfEdges = new List<Edge>();
             this.listOfVertices = new List<Vertex>();
             this.adjacencyList = new Dictionary<Vertex, List<Edge>>();
             // TODO make method to take care of the size of the matrix
             this.adjacencyMatrix = new double[adjMatrixSize, adjMatrixSize];
         }
-
-        public int NumVertices { get => numVertices; set => numVertices = value; }
-        public int NumEdges { get => numEdges; set => numEdges = value; }
 
         public void addEdge(Edge newEdge)
         {
@@ -46,8 +42,7 @@ namespace MinCostFlow
                 this.adjacencyList.Add(newEdge.From, new List<Edge>());
                 this.adjacencyList[newEdge.From].Add(newEdge);
             }
-            numEdges++;
-            numVertices += 2;
+
             this.updateAdjacencyMatrix();
         }
 
@@ -89,20 +84,84 @@ namespace MinCostFlow
             // TODO check what happens if you want to remove an Edge which is not in Graph
             var statusEdges = this.listOfEdges.Remove(rmEdge);
             var statusVertices = this.adjacencyList.Remove(rmEdge.From);
-            numEdges--;
-            numVertices -= 2;
 
             return statusEdges && statusVertices;
         }
         
-        public int maxFlow()
+        public double maxFlow(Vertex from, Vertex to)
         {
+            residualGraph = new double[adjMatrixSize, adjMatrixSize];
+            Vertex start = this.listOfVertices.Find(x => x.Equals(from));
+            Vertex end = this.listOfVertices.Find(x => x.Equals(to));
 
-            return 0;
+            // TODO make the size more reasonable 
+            for (int i = 0; i < adjMatrixSize; i++)
+            {
+                for (int j = 0; j < adjMatrixSize; j++)
+                {
+                    this.residualGraph[i,j] = this.adjacencyMatrix[i, j];
+                }
+            }
+            
+            var maxFlow = 0d;
+            while(BFS(start, end))
+            {
+                double minFlow = double.MaxValue;
+                // TODO if you use only parenst for BFS you can use only one Vertex
+                var path = end;
+                while (path.Parents.Count != 0)
+                {
+                    var u = path.Parents[path.Parents.Count - 1];
+                    var v = path;
+                    minFlow = Math.Min(minFlow, residualGraph[u.Seq, v.Seq]);
+
+                    path = path.Parents[path.Parents.Count - 1];
+                }
+
+                path = end;
+                while (path.Parents.Count != 0)
+                {
+                    var u = path.Parents[path.Parents.Count - 1];
+                    var v = path;
+                    residualGraph[u.Seq, v.Seq] -= minFlow;
+                    residualGraph[v.Seq, u.Seq] += minFlow;
+
+                    path = path.Parents[path.Parents.Count - 1];
+                }
+
+                maxFlow += minFlow;
+            }
+
+            return maxFlow;
         }
 
-        private void BFS() {
+        private bool BFS(Vertex from, Vertex to) {
+            var verticesCnt = this.listOfVertices.Count;
+            foreach (Vertex vertex in this.listOfVertices)
+            {
+                vertex.IsVisited = false;
+            }
+            
+            Queue<Vertex> queue = new Queue<Vertex>();
+            queue.Enqueue(from);
+            from.IsVisited = true;
+            
+            while (queue.Count != 0)
+            {
+                Vertex curr = queue.Dequeue();
 
+                foreach (Vertex v in this.listOfVertices)
+                {
+                    if (v.IsVisited == false && this.residualGraph[curr.Seq, v.Seq] > 0)
+                    {
+                        queue.Enqueue(v);
+                        v.addParent(curr);
+                        v.IsVisited = true;
+                    }
+                }
+            }
+
+            return (to.IsVisited == true);
         }
 
         private void updateAdjacencyMatrix()
@@ -113,7 +172,7 @@ namespace MinCostFlow
                 {
                     if (adjMatrixSize > e.From.Seq && adjMatrixSize > e.To.Seq)
                     {
-                        adjacencyMatrix[e.From.Seq, e.To.Seq] = e.Price;
+                        adjacencyMatrix[e.From.Seq, e.To.Seq] = e.Capacity;
                     }
                     else
                     {
