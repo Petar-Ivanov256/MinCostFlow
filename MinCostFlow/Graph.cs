@@ -8,9 +8,12 @@ namespace MinCostFlow
 {
     public class Graph
     {
+        private const int adjMatrixSize = 10;
+
         private int numVertices;
         private int numEdges;
         private List<Edge> listOfEdges;
+        private List<Vertex> listOfVertices;
         private Dictionary<Vertex, List<Edge>> adjacencyList;
         private double[,] adjacencyMatrix;
 
@@ -19,7 +22,10 @@ namespace MinCostFlow
             this.numEdges = 0;
             this.numVertices = 0;
             this.listOfEdges = new List<Edge>();
+            this.listOfVertices = new List<Vertex>();
             this.adjacencyList = new Dictionary<Vertex, List<Edge>>();
+            // TODO make method to take care of the size of the matrix
+            this.adjacencyMatrix = new double[adjMatrixSize, adjMatrixSize];
         }
 
         public int NumVertices { get => numVertices; set => numVertices = value; }
@@ -29,7 +35,8 @@ namespace MinCostFlow
         {
             // TODO Validations:
             // 1. Check for parallel arcs
-            this.listOfEdges.Add(newEdge);
+            this.updateEdges(newEdge);
+            this.updateVertices(newEdge);
             if (this.adjacencyList.ContainsKey(newEdge.From))
             {
                 this.adjacencyList[newEdge.From].Add(newEdge);
@@ -41,6 +48,40 @@ namespace MinCostFlow
             }
             numEdges++;
             numVertices += 2;
+            this.updateAdjacencyMatrix();
+        }
+
+        private void updateEdges(Edge edge)
+        {
+            if (!listOfEdges.Contains(edge))
+            {
+                listOfEdges.Add(edge);
+            }
+        }
+
+        private void updateVertices(Edge edge)
+        {
+            if (!listOfVertices.Contains(edge.From))
+            {
+                listOfVertices.Add(edge.From);
+                edge.From.Seq = Vertex.NextSeq;
+                Vertex.NextSeq++;
+            }
+            else
+            {
+                edge.From.Seq = this.listOfVertices.Find(x => x.Equals(edge.From)).Seq;
+            }
+
+            if (!listOfVertices.Contains(edge.To))
+            {
+                listOfVertices.Add(edge.To);
+                edge.To.Seq = Vertex.NextSeq;
+                Vertex.NextSeq++;
+            }
+            else
+            {
+                edge.To.Seq = this.listOfVertices.Find(x => x.Equals(edge.To)).Seq;
+            }
         }
 
         public bool removeEdge(Edge rmEdge)
@@ -62,6 +103,30 @@ namespace MinCostFlow
 
         private void BFS() {
 
+        }
+
+        private void updateAdjacencyMatrix()
+        {
+            foreach (Vertex v in this.adjacencyList.Keys)
+            {
+                foreach(Edge e in this.adjacencyList[v])
+                {
+                    if (adjMatrixSize > e.From.Seq && adjMatrixSize > e.To.Seq)
+                    {
+                        adjacencyMatrix[e.From.Seq, e.To.Seq] = e.Price;
+                    }
+                    else
+                    {
+                        this.updatadjMatrixSize();
+                    }
+                }
+            }
+        }
+
+        // TODO
+        private void updatadjMatrixSize()
+        {
+            throw new NotImplementedException();
         }
     }
 }
