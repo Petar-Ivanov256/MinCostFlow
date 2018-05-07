@@ -8,7 +8,7 @@ namespace MinCostFlow
 {
     public class Graph
     {
-        private const int adjMatrixSize = 10;
+        private const int adjMatrixSize = 6;
 
         private List<Edge> listOfEdges;
         private List<Vertex> listOfVertices;
@@ -84,15 +84,39 @@ namespace MinCostFlow
             return edge;
         }
 
+        public void removeVertex(Vertex rmVertex)
+        {
+            this.listOfVertices.Remove(rmVertex);
+            var edgesToRemove = new List<Edge>();
+            foreach (Edge e in this.listOfEdges)
+            {
+                if(e.From.Equals(rmVertex) || e.To.Equals(rmVertex))
+                {
+                    edgesToRemove.Add(e);
+                }
+            }
+            foreach (Edge e in edgesToRemove)
+            {
+                this.listOfEdges.Remove(e);
+            }
+
+            for (int i = 0; i < adjMatrixSize; i++)
+            {
+                this.adjacencyMatrix[rmVertex.Seq, i] = 0;
+                this.adjacencyMatrix[i, rmVertex.Seq] = 0;
+            }
+        }
+
         public bool removeEdge(Edge rmEdge)
         {
             // TODO check what happens if you want to remove an Edge which is not in Graph
             var statusEdges = this.listOfEdges.Remove(rmEdge);
-            var statusVertices = this.adjacencyList.Remove(rmEdge.From);
+            var statusVertices = this.adjacencyList[rmEdge.From].Remove(rmEdge);
+            this.adjacencyMatrix[rmEdge.From.Seq, rmEdge.To.Seq] = 0;
 
             return statusEdges && statusVertices;
         }
-        
+
         public double maxFlow(Vertex from, Vertex to)
         {
             residualGraph = new double[adjMatrixSize, adjMatrixSize];
@@ -104,12 +128,12 @@ namespace MinCostFlow
             {
                 for (int j = 0; j < adjMatrixSize; j++)
                 {
-                    this.residualGraph[i,j] = this.adjacencyMatrix[i, j];
+                    this.residualGraph[i, j] = this.adjacencyMatrix[i, j];
                 }
             }
-            
+
             var maxFlow = 0d;
-            while(BFS(start, end))
+            while (BFS(start, end))
             {
                 double minFlow = double.MaxValue;
                 // TODO if you use only parenst for BFS you can use only one Vertex
@@ -155,7 +179,7 @@ namespace MinCostFlow
             {
                 foreach (Edge e in this.listOfEdges)
                 {
-                    if(e.To.Distance > e.From.Distance + e.Price)
+                    if (e.To.Distance > e.From.Distance + e.Price)
                     {
                         e.To.Distance = e.From.Distance + e.Price;
                         e.To.Parents.Add(e.From);
@@ -174,17 +198,60 @@ namespace MinCostFlow
             return null;
         }
 
-        private bool BFS(Vertex from, Vertex to) {
+        public int minCostFlow(Vertex from, Vertex to, int cargo)
+        {
+            Vertex start = this.listOfVertices.Find(x => x.Equals(from));
+            Vertex end = this.listOfVertices.Find(x => x.Equals(to));
+            Vertex source = new Vertex("s");
+            Vertex dest = new Vertex("t");
+
+            this.addEdge(new Edge(source, start, cargo, 0));
+            this.addEdge(new Edge(end, dest, cargo, 0));
+            //TODO make the flow to be int
+            int maxFlow = (int)this.maxFlow(source, dest);
+
+            if (maxFlow < cargo)
+            {
+                //TODO make custom exception
+                throw new ApplicationException("There is no feasible solution for this sypply: " + cargo);
+            }
+
+
+            return 0;
+
+        }
+
+        //private void establishFeasibleFLow(Vertex v, int diff)
+        //{
+        //    for (int i = 0; i < adjMatrixSize; i++)
+        //    {
+        //        if (this.residualGraph[v.Seq, i] >= diff)
+        //        {
+        //            this.residualGraph[v.Seq, i] -= diff;
+        //            this.residualGraph[i, v.Seq] += diff;
+        //            break;
+        //        }
+        //        else if(this.residualGraph[v.Seq, i] > 0)
+        //        {
+        //            diff = diff - (int)this.residualGraph[v.Seq, i];
+        //            this.residualGraph[i, v.Seq] += this.residualGraph[v.Seq, i];
+        //            this.residualGraph[v.Seq, i] = 0;
+        //        }
+        //    }
+        //}
+
+        private bool BFS(Vertex from, Vertex to)
+        {
             var verticesCnt = this.listOfVertices.Count;
             foreach (Vertex vertex in this.listOfVertices)
             {
                 vertex.IsVisited = false;
             }
-            
+
             Queue<Vertex> queue = new Queue<Vertex>();
             queue.Enqueue(from);
             from.IsVisited = true;
-            
+
             while (queue.Count != 0)
             {
                 Vertex curr = queue.Dequeue();
@@ -207,7 +274,7 @@ namespace MinCostFlow
         {
             foreach (Vertex v in this.adjacencyList.Keys)
             {
-                foreach(Edge e in this.adjacencyList[v])
+                foreach (Edge e in this.adjacencyList[v])
                 {
                     if (adjMatrixSize > e.From.Seq && adjMatrixSize > e.To.Seq)
                     {
@@ -221,10 +288,13 @@ namespace MinCostFlow
             }
         }
 
-        // TODO
+        // TODO implement the method
         private void updatadjMatrixSize()
         {
+            // Probably you need to rebuild Seq of vertex
             throw new NotImplementedException();
         }
+
+        //TODO: What happens if the goal destination has an outgoing arc
     }
 }
