@@ -16,6 +16,7 @@ namespace MinCostFlow
         private double[,] adjacencyMatrix;
         // TODO implement it with secound instance of Graph
         private double[,] residualGraph;
+        private double[,] priceGraph;
 
         public Graph()
         {
@@ -90,14 +91,14 @@ namespace MinCostFlow
             var edgesToRemove = new List<Edge>();
             foreach (Edge e in this.listOfEdges)
             {
-                if(e.From.Equals(rmVertex) || e.To.Equals(rmVertex))
+                if (e.From.Equals(rmVertex) || e.To.Equals(rmVertex))
                 {
                     edgesToRemove.Add(e);
                 }
             }
             foreach (Edge e in edgesToRemove)
             {
-                this.listOfEdges.Remove(e);
+                this.removeEdge(e);
             }
 
             for (int i = 0; i < adjMatrixSize; i++)
@@ -105,6 +106,8 @@ namespace MinCostFlow
                 this.adjacencyMatrix[rmVertex.Seq, i] = 0;
                 this.adjacencyMatrix[i, rmVertex.Seq] = 0;
             }
+
+            this.adjacencyList.Remove(rmVertex);
         }
 
         public bool removeEdge(Edge rmEdge)
@@ -140,8 +143,8 @@ namespace MinCostFlow
                 var path = end;
                 while (path.Parents.Count != 0)
                 {
-                    var u = path.Parents[path.Parents.Count - 1];
-                    var v = path;
+                    Vertex u = path.Parents[path.Parents.Count - 1];
+                    Vertex v = path;
                     minFlow = Math.Min(minFlow, residualGraph[u.Seq, v.Seq]);
 
                     path = path.Parents[path.Parents.Count - 1];
@@ -150,8 +153,9 @@ namespace MinCostFlow
                 path = end;
                 while (path.Parents.Count != 0)
                 {
-                    var u = path.Parents[path.Parents.Count - 1];
-                    var v = path;
+                    Vertex u = path.Parents[path.Parents.Count - 1];
+                    Vertex v = path;
+
                     residualGraph[u.Seq, v.Seq] -= minFlow;
                     residualGraph[v.Seq, u.Seq] += minFlow;
 
@@ -198,6 +202,58 @@ namespace MinCostFlow
             return null;
         }
 
+        public Vertex findNegativeCycleInResidualGraph(Vertex from)
+        {
+            Vertex start = this.listOfVertices.Find(x => x.Equals(from));
+
+            foreach (Vertex v in this.listOfVertices)
+            {
+                v.Distance = int.MaxValue;
+                v.Parents = new List<Vertex>();
+            }
+            start.Distance = 0;
+
+            for (int i = 0; i < this.listOfVertices.Count - 1; i++)
+            {
+                for (int u = 0; u < adjMatrixSize; u++)
+                {
+                    for (int v = 0; v < adjMatrixSize; v++)
+                    {
+                        if (this.residualGraph[u, v] > 0)
+                        {
+                            //TODO could lead to bugs because I am searching vertex from Seq
+                            Vertex uVertex = this.listOfVertices.Find(x => x.Seq == u);
+                            Vertex vVertex = this.listOfVertices.Find(x => x.Seq == v);
+                            if (vVertex.Distance > uVertex.Distance + this.priceGraph[u, v])
+                            {
+                                vVertex.Distance = uVertex.Distance + this.priceGraph[u, v];
+                                vVertex.Parents.Add(uVertex);
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (int u = 0; u < adjMatrixSize; u++)
+            {
+                for (int v = 0; v < adjMatrixSize; v++)
+                {
+                    if (this.residualGraph[u, v] > 0)
+                    {
+                        //TODO could lead to bugs because I am searching vertex from Seq
+                        Vertex uVertex = this.listOfVertices.Find(x => x.Seq == u);
+                        Vertex vVertex = this.listOfVertices.Find(x => x.Seq == v);
+                        if (vVertex.Distance > uVertex.Distance + this.priceGraph[u, v])
+                        {
+                            return vVertex;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
         public int minCostFlow(Vertex from, Vertex to, int cargo)
         {
             Vertex start = this.listOfVertices.Find(x => x.Equals(from));
@@ -215,30 +271,49 @@ namespace MinCostFlow
                 //TODO make custom exception
                 throw new ApplicationException("There is no feasible solution for this sypply: " + cargo);
             }
+            else
+            {
+                this.establishFeasibleFLow(source, dest);
+                this.generatePriceGraph();
+            }
 
+            Vertex vertexInLoop = this.findNegativeCycleInResidualGraph(start);
+            while (vertexInLoop != null)
+            {
+
+
+                vertexInLoop = this.findNegativeCycle(start);
+            }
 
             return 0;
-
         }
 
-        //private void establishFeasibleFLow(Vertex v, int diff)
-        //{
-        //    for (int i = 0; i < adjMatrixSize; i++)
-        //    {
-        //        if (this.residualGraph[v.Seq, i] >= diff)
-        //        {
-        //            this.residualGraph[v.Seq, i] -= diff;
-        //            this.residualGraph[i, v.Seq] += diff;
-        //            break;
-        //        }
-        //        else if(this.residualGraph[v.Seq, i] > 0)
-        //        {
-        //            diff = diff - (int)this.residualGraph[v.Seq, i];
-        //            this.residualGraph[i, v.Seq] += this.residualGraph[v.Seq, i];
-        //            this.residualGraph[v.Seq, i] = 0;
-        //        }
-        //    }
-        //}
+        public void generatePriceGraph()
+        {
+            //TODO Clean it also when you are deleteing vertices or edges
+            priceGraph = new double[adjMatrixSize, adjMatrixSize];
+
+            foreach (Edge e in this.listOfEdges)
+            {
+                priceGraph[e.From.Seq, e.To.Seq] = e.Price;
+                priceGraph[e.To.Seq, e.From.Seq] = -e.Price;
+            }
+        }
+
+        private void establishFeasibleFLow(Vertex source, Vertex dest)
+        {
+            this.removeVertex(source);
+            this.removeVertex(dest);
+
+            for (int i = 0; i < adjMatrixSize; i++)
+            {
+                // The the indexes are reversed because in the residual network there is no edge "s" -> start and end -> "t"
+                // because we add artificial edges with the desired capacity of the supply and demand.
+                // That is why these edges are with full capacity and we have only the reversed edges in the Residual network
+                this.residualGraph[i, source.Seq] = 0;
+                this.residualGraph[dest.Seq, i] = 0;
+            }
+        }
 
         private bool BFS(Vertex from, Vertex to)
         {
