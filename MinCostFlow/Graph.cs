@@ -31,8 +31,7 @@ namespace MinCostFlow
         {
             // TODO Validations:
             // 1. Check for parallel arcs
-            this.updateEdges(newEdge);
-            this.updateVertices(newEdge);
+            newEdge = this.updateEdges(newEdge);
             if (this.adjacencyList.ContainsKey(newEdge.From))
             {
                 this.adjacencyList[newEdge.From].Add(newEdge);
@@ -46,15 +45,19 @@ namespace MinCostFlow
             this.updateAdjacencyMatrix();
         }
 
-        private void updateEdges(Edge edge)
+        private Edge updateEdges(Edge edge)
         {
+            edge = this.updateVertices(edge);
+
             if (!listOfEdges.Contains(edge))
             {
                 listOfEdges.Add(edge);
             }
+
+            return edge;
         }
 
-        private void updateVertices(Edge edge)
+        private Edge updateVertices(Edge edge)
         {
             if (!listOfVertices.Contains(edge.From))
             {
@@ -64,7 +67,7 @@ namespace MinCostFlow
             }
             else
             {
-                edge.From.Seq = this.listOfVertices.Find(x => x.Equals(edge.From)).Seq;
+                edge.From = this.listOfVertices.Find(x => x.Equals(edge.From));
             }
 
             if (!listOfVertices.Contains(edge.To))
@@ -75,8 +78,10 @@ namespace MinCostFlow
             }
             else
             {
-                edge.To.Seq = this.listOfVertices.Find(x => x.Equals(edge.To)).Seq;
+                edge.To = this.listOfVertices.Find(x => x.Equals(edge.To));
             }
+
+            return edge;
         }
 
         public bool removeEdge(Edge rmEdge)
@@ -135,6 +140,40 @@ namespace MinCostFlow
             return maxFlow;
         }
 
+        public Vertex findNegativeCycle(Vertex from)
+        {
+            Vertex start = this.listOfVertices.Find(x => x.Equals(from));
+
+            foreach (Vertex v in this.listOfVertices)
+            {
+                v.Distance = int.MaxValue;
+                v.Parents = new List<Vertex>();
+            }
+            start.Distance = 0;
+
+            for (int i = 0; i < this.listOfVertices.Count - 1; i++)
+            {
+                foreach (Edge e in this.listOfEdges)
+                {
+                    if(e.To.Distance > e.From.Distance + e.Price)
+                    {
+                        e.To.Distance = e.From.Distance + e.Price;
+                        e.To.Parents.Add(e.From);
+                    }
+                }
+            }
+
+            foreach (Edge e in this.listOfEdges)
+            {
+                if (e.To.Distance > e.From.Distance + e.Price)
+                {
+                    return e.To;
+                }
+            }
+
+            return null;
+        }
+
         private bool BFS(Vertex from, Vertex to) {
             var verticesCnt = this.listOfVertices.Count;
             foreach (Vertex vertex in this.listOfVertices)
@@ -189,96 +228,3 @@ namespace MinCostFlow
         }
     }
 }
-
-
-//const int V = 6; //Number of vertices in graph
-
-///* Returns true if there is a path from source 's' to sink
-//  't' in residual graph. Also fills parent[] to store the
-//  path */
-//static bool bfs(int[,] rGraph, int s, int t, int[] parent)
-//{
-//    // Create a visited array and mark all vertices as not visited
-//    bool[] visited = new bool[V];
-
-//    for (int i = 0; i < V; ++i)
-//    {
-//        visited[i] = false;
-//    }
-
-//    // Create a queue, enqueue source vertex and mark source vertex as visited
-//    Queue<int> queue = new Queue<int>();
-//    queue.Enqueue(s);
-
-//    visited[s] = true;
-//    parent[s] = -1;
-
-//    // Standard BFS Loop
-//    while (queue.Count != 0)
-//    {
-//        int u = queue.Dequeue();
-
-//        for (int v = 0; v < V; v++)
-//        {
-//            if (visited[v] == false && rGraph[u, v] > 0)
-//            {
-//                queue.Enqueue(v);
-//                parent[v] = u;
-//                visited[v] = true;
-//            }
-//        }
-//    }
-
-//    // If we reached sink in BFS starting from source, then
-//    // return true, else false
-//    return (visited[t] == true);
-//}
-
-//// Returns tne maximum flow from s to t in the given graph
-//static int fordFulkerson(int[,] graph, int s, int t)
-//{
-//    int u, v;
-
-//    int[,] rGraph = new int[V, V];
-
-//    for (u = 0; u < V; u++)
-//    {
-//        for (v = 0; v < V; v++)
-//        {
-//            rGraph[u, v] = graph[u, v];
-//        }
-//    }
-
-//    // This array is filled by BFS and to store path
-//    int[] parent = new int[V];
-
-//    int max_flow = 0;  // There is no flow initially
-
-//    // Augment the flow while tere is path from source to sink
-//    // Theorem 6.4 (Augmenting Path Theorem) on page 202(pdf) 184(book)
-//    while (bfs(rGraph, s, t, parent))
-//    {
-//        // Find minimum residual capacity of the edhes
-//        // along the path filled by BFS. Or we can say
-//        // find the maximum flow through the path found.
-//        int path_flow = int.MaxValue;
-//        for (v = t; v != s; v = parent[v])
-//        {
-//            u = parent[v];
-//            path_flow = Math.Min(path_flow, rGraph[u, v]);
-//        }
-
-//        // update residual capacities of the edges and
-//        // reverse edges along the path
-//        for (v = t; v != s; v = parent[v])
-//        {
-//            u = parent[v];
-//            rGraph[u, v] -= path_flow;
-//            rGraph[v, u] += path_flow;
-//        }
-
-//        max_flow += path_flow;
-//    }
-
-//    return max_flow;
-//}

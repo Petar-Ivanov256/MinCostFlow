@@ -12,6 +12,7 @@ namespace MinCostFlow
         private string name;
         private int seq;
         private bool isVisited;
+        private double distance;
         private List<Vertex> parents;
         private List<Vertex> children;
 
@@ -28,6 +29,7 @@ namespace MinCostFlow
         public int Seq { get => seq; set => seq = value; }
         public static int NextSeq { get => nextSeq; set => nextSeq = value; }
         public bool IsVisited { get => isVisited; set => isVisited = value; }
+        public double Distance { get => distance; set => distance = value; }
 
         public bool removeChild(Vertex child)
         {
