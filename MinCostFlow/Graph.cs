@@ -280,9 +280,45 @@ namespace MinCostFlow
             Vertex vertexInLoop = this.findNegativeCycleInResidualGraph(start);
             while (vertexInLoop != null)
             {
+                Vertex parent = vertexInLoop.Parents[vertexInLoop.Parents.Count - 1];
+                List<Vertex> cycle = new List<Vertex>();
+                cycle.Add(vertexInLoop);
+                while (parent != vertexInLoop)
+                {
+                    cycle.Add(parent);
+                    parent = parent.Parents[parent.Parents.Count - 1];
+                }
 
+                List<double> rFlows = new List<double>();
+                for (int i = 0; i < cycle.Count; i++)
+                {
+                    if (i == cycle.Count - 1)
+                    {
+                        rFlows.Add(this.residualGraph[cycle[0].Seq, cycle[cycle.Count - 1].Seq]);
+                    }
+                    else
+                    {
+                        rFlows.Add(this.residualGraph[cycle[i + 1].Seq, cycle[i].Seq]);
+                    }
+                }
 
-                vertexInLoop = this.findNegativeCycle(start);
+                double minRFlow = rFlows.Min();
+
+                for (int i = 0; i < cycle.Count; i++)
+                {
+                    if (i == cycle.Count - 1)
+                    {
+                        this.residualGraph[cycle[0].Seq, cycle[cycle.Count - 1].Seq] -= minRFlow;
+                        this.residualGraph[cycle[cycle.Count - 1].Seq, cycle[0].Seq] += minRFlow;
+                    }
+                    else
+                    {
+                        this.residualGraph[cycle[i + 1].Seq, cycle[i].Seq] -= minRFlow;
+                        this.residualGraph[cycle[i].Seq, cycle[i + 1].Seq] += minRFlow;
+                    }
+                }
+
+                vertexInLoop = this.findNegativeCycleInResidualGraph(start);
             }
 
             return 0;
@@ -360,6 +396,25 @@ namespace MinCostFlow
                         this.updatadjMatrixSize();
                     }
                 }
+            }
+        }
+
+        public void printGraphMinCostFlow()
+        {
+            double minCostFlow = 0;
+            foreach (Edge e in this.listOfEdges)
+            {
+                minCostFlow += this.residualGraph[e.To.Seq, e.From.Seq] * this.priceGraph[e.From.Seq, e.To.Seq];
+                Console.WriteLine(e.From + " -> " + e.To + " - Flow: " + this.residualGraph[e.To.Seq, e.From.Seq] + " / Price: " + this.residualGraph[e.To.Seq, e.From.Seq] * this.priceGraph[e.From.Seq, e.To.Seq]);
+            }
+            Console.WriteLine("The min const flow is: " + minCostFlow);
+        }
+
+        public void printGraphMaxFlow()
+        {
+            foreach (Edge e in this.listOfEdges)
+            {
+                Console.WriteLine(e.From + " -> " + e.To + " = " + this.residualGraph[e.To.Seq, e.From.Seq]);
             }
         }
 
