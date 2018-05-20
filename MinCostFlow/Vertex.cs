@@ -15,12 +15,17 @@ namespace MinCostFlow
         private double distance;
         private List<Vertex> parents;
         private List<Vertex> children;
+        private Vertex parent;
+        private int pi;
+        private double nodeBalance;
+        private double nodeImbalance;
 
         public Vertex(string name)
         {
             this.name = name;
             this.parents = new List<Vertex>();
             this.children = new List<Vertex>();
+            this.nodeBalance = 0;
         }
 
         public string Name { get => name; set => name = value; }
@@ -30,6 +35,10 @@ namespace MinCostFlow
         public static int NextSeq { get => nextSeq; set => nextSeq = value; }
         public bool IsVisited { get => isVisited; set => isVisited = value; }
         public double Distance { get => distance; set => distance = value; }
+        public int Pi { get => pi; set => pi = value; }
+        public double NodeBalance { get => nodeBalance; set => nodeBalance = value; }
+        public double NodeImbalance { get => nodeImbalance; set => nodeImbalance = value; }
+        public Vertex Parent { get => parent; set => parent = value; }
 
         public bool removeChild(Vertex child)
         {
