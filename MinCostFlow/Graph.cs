@@ -8,7 +8,7 @@ namespace MinCostFlow
 {
     public class Graph
     {
-        private const int adjMatrixSize = 20;
+        private const int adjMatrixSize = 10;
 
         private List<Edge> listOfEdges;
         private List<Vertex> listOfVertices;
