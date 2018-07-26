@@ -8,7 +8,7 @@ namespace MinCostFlow
 {
     public class Graph
     {
-        private const int adjMatrixSize = 10;
+        private const int adjMatrixSize = 20;
 
         private List<Edge> listOfEdges;
         private List<Vertex> listOfVertices;
@@ -335,8 +335,8 @@ namespace MinCostFlow
             Vertex start = this.listOfVertices.Find(x => x.Equals(from));
             Vertex end = this.listOfVertices.Find(x => x.Equals(to));
 
-            start.NodeBalance = cargo;
-            end.NodeBalance = -cargo;
+            start.NodeImbalance = cargo;
+            end.NodeImbalance = -cargo;
 
             this.epsilon = listOfEdges.Max(x => x.Price);
             foreach (Vertex v in this.listOfVertices)
@@ -363,10 +363,15 @@ namespace MinCostFlow
                 this.generatePriceGraph();
             }
 
-            while (this.epsilon >= 1 / this.listOfEdges.Count)
+            while (this.epsilon >= (Double)1 / this.listOfEdges.Count)
             {
                 this.improveApproxipation();
                 this.epsilon = this.epsilon / 2;
+
+                //if(this.listOfVertices.Find(x => x.NodeImbalance > 0) == null)
+                //{
+                //    break;
+                //}
             }
 
             return 0;
@@ -381,60 +386,73 @@ namespace MinCostFlow
                     this.residualGraph[e.From.Seq, e.To.Seq] += this.residualGraph[e.To.Seq, e.From.Seq];
                     this.residualGraph[e.To.Seq, e.From.Seq] = 0;
                 }
-                else if (e.Price - e.From.Pi + e.To.Pi < 0)
-                {
-                    this.residualGraph[e.To.Seq, e.From.Seq] += this.residualGraph[e.From.Seq, e.To.Seq];
-                    this.residualGraph[e.From.Seq, e.To.Seq] = 0;
-                }
+                //else if (e.Price - e.From.Pi + e.To.Pi < 0)
+                //{
+                //    this.residualGraph[e.To.Seq, e.From.Seq] += this.residualGraph[e.From.Seq, e.To.Seq];
+                //    this.residualGraph[e.From.Seq, e.To.Seq] = 0;
+                //}
             }
-            
-            //TODO make it in method
-            foreach (Vertex v in this.listOfVertices)
-            {
-                v.NodeImbalance = v.NodeBalance;
 
-                //TODO check if your residual network representation is correct because it could be wrong
-                for (int i = 0; i < adjMatrixSize; i++)
-                {
-                    v.NodeImbalance += this.residualGraph[i, v.Seq];
-                    v.NodeImbalance -= this.residualGraph[v.Seq, i];
-                }
-            }
+            ////TODO make it in method
+            //foreach (Vertex v in this.listOfVertices)
+            //{
+            //    v.NodeImbalance = v.NodeBalance;
+
+            //    //TODO check if your residual network representation is correct because it could be wrong
+            //    for (int i = 0; i < adjMatrixSize; i++)
+            //    {
+            //        v.NodeImbalance += this.residualGraph[i, v.Seq];
+            //        v.NodeImbalance -= this.residualGraph[v.Seq, i];
+            //    }
+            //}
 
             Vertex activeVertex = this.listOfVertices.Find(x => x.NodeImbalance > 0);
             while (activeVertex != null)
             {
-
+                var check = 0;
                 for (int i = 0; i < adjMatrixSize; i++)
                 {
-                    Vertex jVertex = this.listOfVertices.Find(x => x.Seq == i);
-                    if (jVertex == null || this.residualGraph[activeVertex.Seq, jVertex.Seq] == 0)
+                    if (this.residualGraph[activeVertex.Seq, i] == 0)
                     {
                         continue;
                     }
 
+                    Vertex jVertex = this.listOfVertices.Find(x => x.Seq == i);
                     if ((-1 * this.epsilon / 2) <= (this.priceGraph[activeVertex.Seq, jVertex.Seq] - activeVertex.Pi + jVertex.Pi) &&
-                       (this.priceGraph[activeVertex.Seq, i] - activeVertex.Pi + jVertex.Pi) < 0)
+                        (this.priceGraph[activeVertex.Seq, jVertex.Seq] - activeVertex.Pi + jVertex.Pi) < 0)
                     {
-                        this.residualGraph[jVertex.Seq, activeVertex.Seq] += Math.Min(activeVertex.NodeImbalance, this.residualGraph[activeVertex.Seq, jVertex.Seq]);
+                        // TODO make the var types correct the flow should be probably Integer
+                        Double flow = Math.Min(activeVertex.NodeImbalance, this.residualGraph[activeVertex.Seq, jVertex.Seq]);
+
+                        this.residualGraph[jVertex.Seq, activeVertex.Seq] = this.residualGraph[jVertex.Seq, activeVertex.Seq] + flow;
+                        this.residualGraph[activeVertex.Seq, jVertex.Seq] = this.residualGraph[activeVertex.Seq, jVertex.Seq] - flow;
+
+                        activeVertex.NodeImbalance -= flow;
+                        jVertex.NodeImbalance += flow;
+
+                        check = 0;
+                        // TODO TEST CASE ALG not sure if we should break the cycle
+                        break;
                     }
+                    else
+                    {
+                        check++;
+                    }
+
                 }
 
-
-                //TODO make it in method
-                foreach (Vertex v in this.listOfVertices)
+                if(check > 0)
                 {
-                    v.NodeImbalance = v.NodeBalance;
-
-                    //TODO check if your residual network representation is correct because it could be wrong
-                    for (int i = 0; i < adjMatrixSize; i++)
-                    {
-                        v.NodeImbalance += this.residualGraph[i, v.Seq];
-                        v.NodeImbalance -= this.residualGraph[v.Seq, i];
-                    }
+                    // TODO make the whole thing to work with floats or just all prices * 2 in oder preserve epsilon to be whole number
+                    activeVertex.Pi += + (int)this.epsilon / 2;
                 }
 
-                activeVertex = this.listOfVertices.Find(x => x.NodeImbalance > 0);
+
+                if (activeVertex.NodeImbalance <= 0)
+                {
+                    // TODO if the activeVertex stays active should be pickeged again?
+                    activeVertex = this.listOfVertices.Find(x => x.NodeImbalance > 0);
+                }
             }
         }
 

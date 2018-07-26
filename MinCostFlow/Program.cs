@@ -17,11 +17,12 @@ namespace MinCostFlow
             var v2 = new Vertex("2");
 
             graph.addEdge(new Edge(v0, v1, 2, 7));
-            graph.addEdge(new Edge(v0, v2, 3, 13));
-            graph.addEdge(new Edge(v1, v2, 2, 28));
+            graph.addEdge(new Edge(v0, v2, 10, 16));
+            graph.addEdge(new Edge(v1, v2, 5, 4));
 
 
-            graph.minCostFlowCycleCancel(new Vertex("0"), new Vertex("2"), 4);
+            graph.minCostFlowCostScaling(new Vertex("0"), new Vertex("2"), 4);
+            //graph.minCostFlowCycleCancel(new Vertex("0"), new Vertex("2"), 4);
             graph.printGraphMinCostFlow();
 
             //var v0 = new Vertex("0");
@@ -47,7 +48,8 @@ namespace MinCostFlow
             //graph.addEdge(new Edge(v5, v6, 5, 7));
             //graph.printVertexSeq();
 
-            //graph.minCostFlowCycleCancel(new Vertex("0"), new Vertex("6"), 40);
+            ////graph.minCostFlowCycleCancel(new Vertex("0"), new Vertex("6"), 20);
+            //graph.minCostFlowCostScaling(new Vertex("0"), new Vertex("6"), 20);
             //graph.printGraphMinCostFlow();
 
 
@@ -76,7 +78,8 @@ namespace MinCostFlow
             ////Console.WriteLine(graph.maxFlow(new Vertex("1"), new Vertex("11")));
             ////graph.printGraphMaxFlow();
 
-            //graph.minCostFlowCycleCancel(new Vertex("1"), new Vertex("11"), 84);
+            ////graph.minCostFlowCycleCancel(new Vertex("1"), new Vertex("11"), 84);
+            //graph.minCostFlowCostScaling(new Vertex("1"), new Vertex("11"), 84);
             //graph.printGraphMinCostFlow();
 
             Console.WriteLine("Debug");
