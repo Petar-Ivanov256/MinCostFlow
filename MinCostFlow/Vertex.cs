@@ -16,9 +16,11 @@ namespace MinCostFlow
         private List<Vertex> parents;
         private List<Vertex> children;
         private Vertex parent;
-        private int pi;
+        private double pi;
         private double nodeBalance;
         private double nodeImbalance;
+        private Edge currentEdge;
+        private List<Edge> edges;
 
         public Vertex(string name)
         {
@@ -35,10 +37,12 @@ namespace MinCostFlow
         public static int NextSeq { get => nextSeq; set => nextSeq = value; }
         public bool IsVisited { get => isVisited; set => isVisited = value; }
         public double Distance { get => distance; set => distance = value; }
-        public int Pi { get => pi; set => pi = value; }
+        public double Pi { get => pi; set => pi = value; }
         public double NodeBalance { get => nodeBalance; set => nodeBalance = value; }
         public double NodeImbalance { get => nodeImbalance; set => nodeImbalance = value; }
         public Vertex Parent { get => parent; set => parent = value; }
+        public List<Edge> Edges { get => edges; set => edges = value; }
+        public Edge CurrentEdge { get => currentEdge; set => currentEdge = value; }
 
         public bool removeChild(Vertex child)
         {

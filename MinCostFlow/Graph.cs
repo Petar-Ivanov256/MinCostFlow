@@ -172,7 +172,7 @@ namespace MinCostFlow
         public Vertex findNegativeCycle(Vertex from)
         {
             Vertex start = this.listOfVertices.Find(x => x.Equals(from));
-          
+
             foreach (Vertex v in this.listOfVertices)
             {
                 v.Distance = int.MaxValue;
@@ -363,10 +363,21 @@ namespace MinCostFlow
                 this.generatePriceGraph();
             }
 
+            foreach (var v in this.listOfVertices)
+            {
+                v.Edges = this.listOfEdges.FindAll(x => x.From == v);
+                if(v.Edges.Count > 0)
+                {
+                    v.CurrentEdge = v.Edges[0];
+                }
+            }
+
             while (this.epsilon >= (Double)1 / this.listOfEdges.Count)
             {
-                this.improveApproxipation();
-                this.epsilon = this.epsilon / 2;
+                //this.improveApproxipation();
+                //this.epsilon = this.epsilon / 2;
+
+                refine();
 
                 //if(this.listOfVertices.Find(x => x.NodeImbalance > 0) == null)
                 //{
@@ -386,11 +397,11 @@ namespace MinCostFlow
                     this.residualGraph[e.From.Seq, e.To.Seq] += this.residualGraph[e.To.Seq, e.From.Seq];
                     this.residualGraph[e.To.Seq, e.From.Seq] = 0;
                 }
-                //else if (e.Price - e.From.Pi + e.To.Pi < 0)
-                //{
-                //    this.residualGraph[e.To.Seq, e.From.Seq] += this.residualGraph[e.From.Seq, e.To.Seq];
-                //    this.residualGraph[e.From.Seq, e.To.Seq] = 0;
-                //}
+                else if (e.Price - e.From.Pi + e.To.Pi < 0)
+                {
+                    this.residualGraph[e.To.Seq, e.From.Seq] += this.residualGraph[e.From.Seq, e.To.Seq];
+                    this.residualGraph[e.From.Seq, e.To.Seq] = 0;
+                }
             }
 
             ////TODO make it in method
@@ -441,12 +452,80 @@ namespace MinCostFlow
 
                 }
 
-                if(check > 0)
+                if (check > 0)
                 {
                     // TODO make the whole thing to work with floats or just all prices * 2 in oder preserve epsilon to be whole number
-                    activeVertex.Pi += + (int)this.epsilon / 2;
+                    activeVertex.Pi += +(int)this.epsilon / 2;
                 }
 
+
+                if (activeVertex.NodeImbalance <= 0)
+                {
+                    // TODO if the activeVertex stays active should be pickeged again?
+                    activeVertex = this.listOfVertices.Find(x => x.NodeImbalance > 0);
+                }
+            }
+        }
+        private void refine()
+        {
+            this.epsilon = this.epsilon / 2;
+
+            foreach (Edge e in this.listOfEdges)
+            {
+                if (e.Price - e.From.Pi + e.To.Pi < 0)
+                {
+                    this.residualGraph[e.To.Seq, e.From.Seq] += this.residualGraph[e.From.Seq, e.To.Seq];
+                    this.residualGraph[e.From.Seq, e.To.Seq] = 0;
+                }
+            }
+
+            Vertex activeVertex = this.listOfVertices.Find(x => x.NodeImbalance > 0);
+            while (activeVertex != null)
+            {
+
+                List<Edge> edges = this.listOfEdges.FindAll(x => x.From == activeVertex);
+
+                foreach (var e in edges)
+                {
+                    if(this.residualGraph[e.From.Seq, e.To.Seq] > 0 && e.Price - e.From.Pi + e.To.Pi < 0)
+                    {
+                        Double flow = Math.Min(e.From.NodeImbalance, this.residualGraph[e.From.Seq, e.To.Seq]);
+
+                        this.residualGraph[e.To.Seq, e.From.Seq] = this.residualGraph[e.To.Seq, e.From.Seq] + flow;
+                        this.residualGraph[e.From.Seq, e.To.Seq] = this.residualGraph[e.From.Seq, e.To.Seq] - flow;
+
+                        activeVertex.NodeImbalance -= flow;
+                        e.To.NodeImbalance += flow;
+                    }
+                    else
+                    {
+                        var currEdgeIndex = activeVertex.Edges.FindIndex(a => a == activeVertex.CurrentEdge);
+
+                        if (currEdgeIndex != activeVertex.Edges.Count - 1)
+                        {
+                            activeVertex.CurrentEdge = activeVertex.Edges[currEdgeIndex + 1];
+                        }
+                        else
+                        {
+                            activeVertex.CurrentEdge = activeVertex.Edges[0];
+
+                            var min = double.MaxValue;
+                            foreach (var ie in activeVertex.Edges)
+                            {
+                                if(this.residualGraph[ie.From.Seq, ie.To.Seq] > 0)
+                                {
+                                    var value = ie.To.Pi + ie.Price + this.epsilon;
+                                    if(min > value)
+                                    {
+                                        min = value;
+                                    }
+                                }
+                            }
+
+                            activeVertex.Pi = min;
+                        }
+                    }
+                }
 
                 if (activeVertex.NodeImbalance <= 0)
                 {
