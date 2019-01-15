@@ -374,10 +374,8 @@ namespace MinCostFlow
 
             while (this.epsilon >= (Double)1 / this.listOfEdges.Count)
             {
-                //this.improveApproxipation();
-                //this.epsilon = this.epsilon / 2;
-
-                refine();
+                this.improveApproxipation();
+                this.epsilon = this.epsilon / 2;
 
                 //if(this.listOfVertices.Find(x => x.NodeImbalance > 0) == null)
                 //{
