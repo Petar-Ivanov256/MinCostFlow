@@ -35,4 +35,12 @@ function addCity() {
 
 function saveCities() {
     console.log(addedCities)
+    $.ajax({
+        type: "POST",
+        url: "/save",
+        data: addedCities,
+        contentType: "application/json; charset=utf-8",
+        success: function(data){ console.log("Success");},
+        error: function(data){console.log("Success", data);}
+    });
 }
