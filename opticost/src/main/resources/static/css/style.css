@@ -22,3 +22,12 @@
 
     margin-left: 15px;
 }
+
+.map-container {
+    width: 95%;
+    margin: 0 auto;
+}
+
+.map{
+    width: 100%;
+}

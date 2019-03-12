@@ -31,11 +31,16 @@
             <button class="btn btn-primary" id="saveCities">Save</button>
         </div>
     </div>
+    <div class="col-md-9">
+        <div class="map-container">
+            <img class="map" th:src="@{img/bg_big.svg}" alt="Map of Bulgaria">
+        </div>
+    </div>
 </div>
 
 </body>
 <!--<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>-->
-<script src="../static/js/jquery/jquery-3.3.1.js" th:src="@{js/jquery/jquery-3.3.1.js}"></script>
-<script src="../static/js/bootstrap.min.js" th:src="@{js/bootstrap.min.js}"></script>
-<script src="../static/js/script.js" th:src="@{js/script.js}"></script>
+<script th:src="@{js/jquery/jquery-3.3.1.js}"></script>
+<script th:src="@{js/bootstrap.min.js}"></script>
+<script th:src="@{js/script.js}"></script>
 </html>
