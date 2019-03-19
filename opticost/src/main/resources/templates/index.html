@@ -10,6 +10,7 @@
 <div class="wrapper">
     <div class="input-part col-md-3">
         <div>
+            <h3>Add Vertices</h3>
             <div class="form-row">
                 <div class="form-group col-md-5">
                     <label for="inputCityName">City name</label>
@@ -23,23 +24,52 @@
                     <label for="inputY">Coor Y</label>
                     <input type="number" class="form-control" id="inputY">
                 </div>
-                <button class="btn btn-primary" id="addCityBtn">Add</button>
+                <button class="btn btn-primary add" id="addCityBtn">Add</button>
             </div>
             <table id="showCities" class="col-md-12">
 
             </table>
-            <button class="btn btn-primary" id="saveCities">Save</button>
+            <button class="btn btn-primary save" id="saveCities">Save</button>
+        </div>
+        <hr>
+        <div>
+            <h3>Add Edges</h3>
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="fromCity">From</label>
+                    <input type="text" class="form-control" id="fromCity">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="toCity">To</label>
+                    <input type="text" class="form-control" id="toCity">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="inputCap">Capacity</label>
+                    <input type="number" class="form-control" id="inputCap">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="inputPrice">Price</label>
+                    <input type="number" class="form-control" id="inputPrice">
+                </div>
+                <button class="btn btn-primary add" id="addRoad">Add</button>
+            </div>
+            <table id="showRoads" class="col-md-12">
+
+            </table>
+            <button class="btn btn-primary save" id="saveRoad">Save</button>
         </div>
     </div>
     <div class="col-md-9">
-        <div class="map-container">
-            <img class="map" th:src="@{img/bg_big.svg}" alt="Map of Bulgaria">
-        </div>
+        <!--<div class="map-container" id="sigma-container">-->
+        <!--<img class="map" th:src="@{img/bg_big.svg}" alt="Map of Bulgaria">-->
+        <!--</div>-->
+        <div id="sigma-container"></div>
     </div>
 </div>
 
 </body>
-<!--<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>-->
+
+<script th:src="@{js/sigma/sigma.js}"></script>
 <script th:src="@{js/jquery/jquery-3.3.1.js}"></script>
 <script th:src="@{js/bootstrap.min.js}"></script>
 <script th:src="@{js/script.js}"></script>

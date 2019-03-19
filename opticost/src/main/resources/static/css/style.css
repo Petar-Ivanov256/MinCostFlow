@@ -7,7 +7,7 @@
     align-items: center;
 }
 
-#addCityBtn {
+.add {
     margin-top: 8px;
 }
 
@@ -17,17 +17,31 @@
     padding: 20px;
 }
 
-#saveCities{
+.save {
     margin-top: 15px;
-
     margin-left: 15px;
 }
 
-.map-container {
+/*.map-container {*/
+    /*width: 95%;*/
+    /*margin: 0 auto;*/
+    /*background-image: url("../img/bg_big.svg");*/
+/*}*/
+
+.map {
+    width: 100%;
+}
+
+#sigma-container {
     width: 95%;
     margin: 0 auto;
 }
 
-.map{
-    width: 100%;
+h3 {
+    margin-top: 5px;
+}
+
+hr {
+    border-top: 1px solid #8c8b8b;
+    border-bottom: 1px solid #fff;
 }
