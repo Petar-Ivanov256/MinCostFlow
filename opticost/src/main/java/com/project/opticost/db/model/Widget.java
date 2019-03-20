@@ -1,4 +1,4 @@
-package com.project.opticost.model;
+package com.project.opticost.db.model;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

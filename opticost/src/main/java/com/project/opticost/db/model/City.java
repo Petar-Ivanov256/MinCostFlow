@@ -1,6 +1,8 @@
-package com.project.opticost.model;
+package com.project.opticost.db.model;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name="cities")
@@ -18,7 +20,28 @@ public class City {
     @Column(name = "y_coordinate")
     private Integer yCoord;
 
+//    @OneToMany(
+//            mappedBy = "cities",
+//            cascade = CascadeType.ALL,
+//            orphanRemoval = true
+//    )
+//    private List<Road> roads = new ArrayList<>();
+//
+//
+//    public void addRoad(Road road) {
+//        roads.add(road);
+    //TODO need to add the correct one
+//        road.setPost(this);
+//    }
+//
+//    public void removeRoad(Road road) {
+//        roads.remove(road);
+    //TODO need to remove the correct one
+//        road.setPost(null);
+//    }
+
     public City(){}
+
 
     public Long getId() {
         return id;

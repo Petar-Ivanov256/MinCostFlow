@@ -1,16 +1,35 @@
+var addedCities = [];
+var addedRoads = [];
+var s = null;
+var graph = {};
+
+var nodeSize = 3;
+var nodeColor = '#008cc2';
+
 init();
-let addedCities = [];
-let addedRoads = [];
-let graph = [];
-let nodeSize = 3;
-let nodeColor = '#008cc2';
 
 function init() {
     $("#sigma-container").css("height", $(document).height() * 0.9);
     $("#addCityBtn").on('click', addCity);
     $("#saveCities").on('click', saveCities);
     $("#addRoad").on('click', addRoad);
-    $("#saveRoad").on('click', addRoad);
+    $("#saveRoad").on('click', saveRoads);
+
+    // Initialise sigma:
+    s = new sigma(
+        {
+            renderer: {
+                container: document.getElementById('sigma-container'),
+                type: 'svg'
+            },
+            settings: {
+                minEdgeSize: 0.1,
+                maxEdgeSize: 2,
+                minNodeSize: 1,
+                maxNodeSize: 8,
+            }
+        }
+    );
 }
 
 function addCity() {
@@ -89,7 +108,7 @@ function saveCities() {
         contentType: "application/json; charset=utf-8",
         success: function (data) {
             console.log("Success", data);
-            drawGraph(data);
+            drawCities(data);
         },
         error: function (data) {
             console.log("Error", data);
@@ -99,37 +118,22 @@ function saveCities() {
 
 function saveRoads() {
     console.log(addedRoads);
-    // $.ajax({
-    //     type: "POST",
-    //     url: "/save-cities",
-    //     data: JSON.stringify(addedCities),
-    //     contentType: "application/json; charset=utf-8",
-    //     success: function (data) {
-    //         console.log("Success", data);
-    //         drawGraph(data);
-    //     },
-    //     error: function (data) {
-    //         console.log("Error", data);
-    //     }
-    // });
+    $.ajax({
+        type: "POST",
+        url: "/save-roads",
+        data: JSON.stringify(addedRoads),
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            console.log("Success", data);
+            drawRoads(data);
+        },
+        error: function (data) {
+            console.log("Error", data);
+        }
+    });
 }
 
-function drawGraph(cities) {
-    // Initialise sigma:
-    let s = new sigma(
-        {
-            renderer: {
-                container: document.getElementById('sigma-container'),
-                type: 'svg'
-            },
-            settings: {
-                minEdgeSize: 0.1,
-                maxEdgeSize: 2,
-                minNodeSize: 1,
-                maxNodeSize: 8,
-            }
-        }
-    );
+function drawCities(cities) {
 
     let nodes = cities.map(function (x) {
         return {id: x.id, label: x.cityName, x: x.xCoord, y: x.yCoord, size: nodeSize, color: nodeColor}
@@ -138,6 +142,25 @@ function drawGraph(cities) {
 // Create a graph object
     graph = {
         nodes: nodes
+    };
+
+// Load the graph in sigma
+    s.graph.read(graph);
+// Ask sigma to draw it
+    s.refresh();
+
+    console.log("Drawing graph")
+}
+
+function drawRoads(cities) {
+
+    let edges = cities.map(function (x) {
+        return {id: x.id, label: x.cityName, x: x.xCoord, y: x.yCoord, size: nodeSize, color: nodeColor}
+    });
+
+// Create a graph object
+    graph = {
+        edges: edges
     };
 
 // Load the graph in sigma
