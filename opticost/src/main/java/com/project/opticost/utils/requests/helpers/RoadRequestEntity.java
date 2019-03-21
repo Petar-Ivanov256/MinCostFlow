@@ -2,7 +2,7 @@ package com.project.opticost.utils.requests.helpers;
 
 import java.math.BigDecimal;
 
-public class RoadRequest {
+public class RoadRequestEntity {
     private String fromCity;
     private String toCity;
     private double capacity;

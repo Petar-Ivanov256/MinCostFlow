@@ -1,17 +1,15 @@
 package com.project.opticost.db.model;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name="cities")
+@Table(name = "cities")
 public class City {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "city_name")
+    @Column(name = "city_name", unique = true)
     private String cityName;
 
     @Column(name = "x_coordinate")
@@ -40,7 +38,8 @@ public class City {
 //        road.setPost(null);
 //    }
 
-    public City(){}
+    public City() {
+    }
 
 
     public Long getId() {
@@ -73,5 +72,12 @@ public class City {
 
     public void setyCoord(Integer yCoord) {
         this.yCoord = yCoord;
+    }
+
+    public void merge(City other){
+        this.setId(other.getId());
+        this.setCityName(other.getCityName());
+        this.setxCoord(other.getxCoord());
+        this.setyCoord(other.getyCoord());
     }
 }
