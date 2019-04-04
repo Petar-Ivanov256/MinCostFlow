@@ -7,7 +7,6 @@
     <link href="../static/css/style.css" th:href="@{css/style.css}" rel="stylesheet">
 
 
-
     <script src="https://cdn.jsdelivr.net/npm/sigma@1.2.1/src/sigma.core.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sigma@1.2.1/src/conrad.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sigma@1.2.1/src/utils/sigma.utils.js"></script>
@@ -105,6 +104,18 @@
 
             </table>
             <button class="btn btn-primary save" id="saveRoad">Save</button>
+        </div>
+        <hr>
+        <div>
+            <h3>Upload file</h3>
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="graphFile">File</label>
+                    <input type="file" id="graphFile">
+                </div>
+            </div>
+
+            <button class="btn btn-primary save" id="processFile">Process file</button>
         </div>
     </div>
     <div class="col-md-9">

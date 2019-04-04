@@ -14,6 +14,7 @@ function init() {
     $("#saveCities").on('click', saveCities);
     $("#addRoad").on('click', addRoad);
     $("#saveRoad").on('click', saveRoads);
+    $("#processFile").on('click', processFile);
 
     // Initialise sigma:
     s = new sigma(
@@ -85,29 +86,36 @@ function addCity() {
     let yCoord = $("#inputY").val();
     let showTable = $("#showCities");
 
-    let previousHtml = showTable.html();
-    showTable.html(
-        previousHtml +
-        "<tr>" +
-        "<td class='col-md-5'>" +
-        cityName +
-        "</td>" +
-        "<td class='col-md-3'>" +
-        xCoord +
-        "</td>" +
-        "<td class='col-md-3'>" +
-        yCoord +
-        "</td>" +
-        "</tr>"
-    );
+    let value = {
+        'cityName': cityName,
+        'xCoord': xCoord,
+        'yCoord': yCoord
+    };
 
-    addedCities.push(
-        {
-            'cityName': cityName,
-            'xCoord': xCoord,
-            'yCoord': yCoord
-        }
-    );
+    console.log(addedCities.filter(x => x.cityName === value.cityName).length === 0);
+    if (addedCities.filter(x => x.cityName === value.cityName).length === 0 &&
+        addedCities.filter(x => x.xCoord === value.xCoord && x.yCoord === value.yCoord).length === 0) {
+
+        let previousHtml = showTable.html();
+        showTable.html(
+            previousHtml +
+            "<tr>" +
+            "<td class='col-md-5'>" +
+            cityName +
+            "</td>" +
+            "<td class='col-md-3'>" +
+            xCoord +
+            "</td>" +
+            "<td class='col-md-3'>" +
+            yCoord +
+            "</td>" +
+            "</tr>"
+        );
+
+        addedCities.push(value);
+    } else {
+        console.log("Can't add the same city or different city with the same coordinates")
+    }
 }
 
 function addRoad() {
@@ -199,7 +207,7 @@ function drawCities(cities) {
 
 function drawRoads(roads) {
     let edges = roads.map(function (x) {
-        return {id: x.id, source: x.fromCity.id, target: x.toCity.id, color: '#282c34', type:'curvedArrow', size:0.5}
+        return {id: x.id, source: x.fromCity.id, target: x.toCity.id, color: '#282c34', type: 'curvedArrow', size: 0.5}
     });
 
 // Create a graph object
@@ -216,8 +224,71 @@ function drawRoads(roads) {
     s.refresh();
 
     s.startForceAtlas2();
-    window.setTimeout(function() {s.killForceAtlas2()}, 3000);
+    window.setTimeout(function () {
+        s.killForceAtlas2()
+    }, 3000);
 
     console.log("Drawing Edges")
 }
 
+function drawRoadsAndCities(data) {
+    // let nodes = cities.map(function (x) {
+    //     return {id: x.id, label: x.cityName, x: x.xCoord, y: x.yCoord, size: nodeSize, color: nodeColor}
+    // });
+
+    let nodes = [];
+    for (const x of data) {
+        // TODO make the cities to be unique
+        nodes.push({id: x.fromCity.id, label: x.fromCity.cityName, x: x.fromCity.xCoord, y: x.fromCity.yCoord, size: nodeSize, color: nodeColor})
+        nodes.push({id: x.toCity.id, label: x.toCity.cityName, x: x.toCity.xCoord, y: x.toCity.yCoord, size: nodeSize, color: nodeColor})
+    }
+
+    let edges = data.map(function (x) {
+        return {id: x.id, source: x.fromCity.id, target: x.toCity.id, color: '#282c34', type: 'curvedArrow', size: 0.5}
+    });
+
+// Create a graph object
+    graph['nodes'] = nodes;
+    graph['edges'] = edges;
+
+// Load the graph in sigma
+    //this gets rid of all the ndoes and edges
+    s.graph.clear();
+    //this gets rid of any methods you've attached to s.
+    // s.graph.kill();
+
+    s.graph.read(graph);
+// Ask sigma to draw it
+    s.refresh();
+
+    s.startForceAtlas2();
+    window.setTimeout(function () {
+        s.killForceAtlas2()
+    }, 3000);
+
+    console.log("Drawing Edges")
+}
+
+function processFile() {
+    let file = $("#graphFile").prop('files')[0];
+
+    if (file) {
+        let formData = new FormData();
+        formData.append('file', file);
+        $.ajax({
+            url: '/process-file',
+            type: "POST",
+            data: formData,
+            enctype: 'multipart/form-data',
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                drawRoadsAndCities(data)
+            }
+        }).done(function (data) {
+            alert('Input processed successfully.')
+        }).fail(function (data) {
+            alert('File upload failed ...');
+        });
+    }
+}
