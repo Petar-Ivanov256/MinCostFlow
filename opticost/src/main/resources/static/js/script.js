@@ -2,6 +2,7 @@ var addedCities = [];
 var addedRoads = [];
 var s = null;
 var graph = {};
+var elementCnt = 0;
 
 var nodeSize = 3;
 var nodeColor = '#008cc2';
@@ -80,7 +81,7 @@ function init() {
 //     window.setTimeout(function() {s.killForceAtlas2()}, 2000);
 }
 
-function editCityRow(data) {
+function editCityRow() {
     let element = $(this).parent().parent();
     let index = element.get(0).id.split("-")[1];
     element.children().eq(0).html("<input type='text' id='cityName-" + index + "' class='form-control' value='" + addedCities[index].cityName + "'>");
@@ -88,22 +89,56 @@ function editCityRow(data) {
     element.children().eq(2).html("<input type='number' id='yCoord-" + index + "' class='form-control' value='" + addedCities[index].yCoord + "'>");
     element.children().eq(3).html(
         "<button type='button' id='save-" + index + "' class='btn btn-success btn-sm'>" +
-            "<span class='glyphicon glyphicon-floppy-saved'></span> Save" +
+        "<span class='glyphicon glyphicon-floppy-saved'></span> Save" +
         "</button>"
     );
 
     $("#save-" + index).on('click', function () {
-        //Todo assign the new values to the array index
-        // addedCities[index].cityName = $("#cityName-" + index).val()
-        // delete the click event from the save button
-        // replace the html of the table with the old one but the new values
-        // extract method for drawing the table row of the non-editable data
-        console.log($("#cityName-" + index).val());
-        // $("cityName-" + index).val();
-        $("#xCoord-" + index).val();
-        $("#yCoord-" + index).val();
+        let cityName = $("#cityName-" + index).val();
+        let xCoord = $("#xCoord-" + index).val();
+        let yCoord = $("#yCoord-" + index).val();
+
+        //TODO fix this check is not working
+        if (addedCities.filter(x => x.cityName === cityName).length === 0 &&
+            addedCities.filter(x => x.xCoord === xCoord && x.yCoord === yCoord && x.deleted === false).length === 0) {
+
+            addedCities[index].cityName = cityName;
+            addedCities[index].xCoord = xCoord;
+            addedCities[index].yCoord = yCoord;
+
+            // Unbind the events before removing the element in order to avoid replication of event listeners
+            $(".editCity").off();
+            $(".removeCity").off();
+            element.empty();
+            element.html(drawCityRow(cityName, xCoord, yCoord));
+
+            $(".editCity").on('click', editCityRow);
+            $(".removeCity").on('click', removeCityRow);
+            $(this).off();
+        } else {
+            console.log("Can't add the same city or different city with the same coordinates")
+
+            // Unbind the events before removing the element in order to avoid replication of event listeners
+            $(".editCity").off();
+            $(".removeCity").off();
+            element.empty();
+            element.html(drawCityRow(addedCities[index].cityName, addedCities[index].xCoord, addedCities[index].yCoord));
+
+            $(".editCity").on('click', editCityRow);
+            $(".removeCity").on('click', removeCityRow);
+            $(this).off();
+        }
     });
 
+}
+
+function removeCityRow() {
+    let element = $(this).parent().parent();
+    let index = element.get(0).id.split("-")[1];
+    addedCities[index].deleted = true;
+    // Unbind the events before removing the element in order to avoid replication of event listeners
+    $(".remove").off();
+    element.remove();
 }
 
 function addCity() {
@@ -111,43 +146,51 @@ function addCity() {
     let xCoord = $("#inputX").val();
     let yCoord = $("#inputY").val();
     let showTable = $("#showCities");
-    let elementCnt = 0;
 
     let value = {
         'cityName': cityName,
         'xCoord': xCoord,
-        'yCoord': yCoord
+        'yCoord': yCoord,
+        'deleted': false
     };
 
+    // TODO check this check
     if (addedCities.filter(x => x.cityName === value.cityName).length === 0 &&
-        addedCities.filter(x => x.xCoord === value.xCoord && x.yCoord === value.yCoord).length === 0) {
+        addedCities.filter(x => x.xCoord === value.xCoord && x.yCoord === value.yCoord && x.deleted === value.deleted).length === 0) {
 
         let previousHtml = showTable.html();
-        showTable.html(
-            previousHtml +
+        showTable.html(previousHtml +
             "<tr id='city-" + elementCnt + "'>" +
-            "<td class='col-md-5'>" +
-            cityName +
-            "</td>" +
-            "<td class='col-md-3'>" +
-            xCoord +
-            "</td>" +
-            "<td class='col-md-3'>" +
-            yCoord +
-            "</td>" +
-            "<td class='col-md-1'>" +
-            "<button type='button' class='btn btn-info btn-sm editCity'>" +
-            "<span class='glyphicon glyphicon-edit'></span> Edit" +
-            "</button>" +
-            "</td>" +
+            drawCityRow(cityName, xCoord, yCoord) +
             "</tr>"
         );
         $(".editCity").on('click', editCityRow);
+        $(".removeCity").on('click', removeCityRow);
         elementCnt = elementCnt + 1;
         addedCities.push(value);
     } else {
         console.log("Can't add the same city or different city with the same coordinates")
     }
+}
+
+function drawCityRow(cityName, xCoord, yCoord) {
+    return "<td class='col-md-3'>" +
+        cityName +
+        "</td>" +
+        "<td class='col-md-3'>" +
+        xCoord +
+        "</td>" +
+        "<td class='col-md-3'>" +
+        yCoord +
+        "</td>" +
+        "<td class='col-md-3'>" +
+        "<button type='button' class='btn btn-info btn-sm editCity'>" +
+        "<span class='glyphicon glyphicon-edit'></span> Edit" +
+        "</button>" +
+        "<button type='button' class='btn btn-danger btn-sm removeCity'>" +
+        "<span class='glyphicon glyphicon-removeg'></span> Remove" +
+        "</button>" +
+        "</td>";
 }
 
 function addRoad() {
@@ -188,10 +231,11 @@ function addRoad() {
 
 function saveCities() {
     console.log(addedCities);
+    let data = addedCities.filter(x => x.deleted === false);
     $.ajax({
         type: "POST",
         url: "/save-cities",
-        data: JSON.stringify(addedCities),
+        data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         success: function (data) {
             console.log("Success", data);
