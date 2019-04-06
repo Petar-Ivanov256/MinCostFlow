@@ -2,7 +2,9 @@ package com.project.opticost.db.services;
 
 import com.project.opticost.db.model.City;
 import com.project.opticost.db.repo.CitiesRepository;
+import com.project.opticost.db.services.interfaces.AbstractService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -10,10 +12,15 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
-public class CitiesService {
+public class CityService extends AbstractService<City,Long> {
 
     @Autowired
     CitiesRepository citiesRepo;
+
+    @Override
+    public JpaRepository<City, Long> getRepo() {
+        return citiesRepo;
+    }
 
     public City findByCityName(String cityName) {
         return citiesRepo.findByCityName(cityName);

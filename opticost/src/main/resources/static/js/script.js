@@ -80,11 +80,38 @@ function init() {
 //     window.setTimeout(function() {s.killForceAtlas2()}, 2000);
 }
 
+function editCityRow(data) {
+    let element = $(this).parent().parent();
+    let index = element.get(0).id.split("-")[1];
+    element.children().eq(0).html("<input type='text' id='cityName-" + index + "' class='form-control' value='" + addedCities[index].cityName + "'>");
+    element.children().eq(1).html("<input type='number' id='xCoord-" + index + "' class='form-control' value='" + addedCities[index].xCoord + "'>");
+    element.children().eq(2).html("<input type='number' id='yCoord-" + index + "' class='form-control' value='" + addedCities[index].yCoord + "'>");
+    element.children().eq(3).html(
+        "<button type='button' id='save-" + index + "' class='btn btn-success btn-sm'>" +
+            "<span class='glyphicon glyphicon-floppy-saved'></span> Save" +
+        "</button>"
+    );
+
+    $("#save-" + index).on('click', function () {
+        //Todo assign the new values to the array index
+        // addedCities[index].cityName = $("#cityName-" + index).val()
+        // delete the click event from the save button
+        // replace the html of the table with the old one but the new values
+        // extract method for drawing the table row of the non-editable data
+        console.log($("#cityName-" + index).val());
+        // $("cityName-" + index).val();
+        $("#xCoord-" + index).val();
+        $("#yCoord-" + index).val();
+    });
+
+}
+
 function addCity() {
     let cityName = $("#inputCityName").val();
     let xCoord = $("#inputX").val();
     let yCoord = $("#inputY").val();
     let showTable = $("#showCities");
+    let elementCnt = 0;
 
     let value = {
         'cityName': cityName,
@@ -92,14 +119,13 @@ function addCity() {
         'yCoord': yCoord
     };
 
-    console.log(addedCities.filter(x => x.cityName === value.cityName).length === 0);
     if (addedCities.filter(x => x.cityName === value.cityName).length === 0 &&
         addedCities.filter(x => x.xCoord === value.xCoord && x.yCoord === value.yCoord).length === 0) {
 
         let previousHtml = showTable.html();
         showTable.html(
             previousHtml +
-            "<tr>" +
+            "<tr id='city-" + elementCnt + "'>" +
             "<td class='col-md-5'>" +
             cityName +
             "</td>" +
@@ -109,9 +135,15 @@ function addCity() {
             "<td class='col-md-3'>" +
             yCoord +
             "</td>" +
+            "<td class='col-md-1'>" +
+            "<button type='button' class='btn btn-info btn-sm editCity'>" +
+            "<span class='glyphicon glyphicon-edit'></span> Edit" +
+            "</button>" +
+            "</td>" +
             "</tr>"
         );
-
+        $(".editCity").on('click', editCityRow);
+        elementCnt = elementCnt + 1;
         addedCities.push(value);
     } else {
         console.log("Can't add the same city or different city with the same coordinates")
@@ -238,9 +270,31 @@ function drawRoadsAndCities(data) {
 
     let nodes = [];
     for (const x of data) {
-        // TODO make the cities to be unique
-        nodes.push({id: x.fromCity.id, label: x.fromCity.cityName, x: x.fromCity.xCoord, y: x.fromCity.yCoord, size: nodeSize, color: nodeColor})
-        nodes.push({id: x.toCity.id, label: x.toCity.cityName, x: x.toCity.xCoord, y: x.toCity.yCoord, size: nodeSize, color: nodeColor})
+        let fromCity = x.fromCity;
+        let toCity = x.toCity;
+
+        if (nodes.filter(x => x.id === fromCity.id).length === 0) {
+            nodes.push({
+                id: x.fromCity.id,
+                label: x.fromCity.cityName,
+                x: x.fromCity.xCoord,
+                y: x.fromCity.yCoord,
+                size: nodeSize,
+                color: nodeColor
+            });
+        }
+
+        if (nodes.filter(x => x.id === toCity.id).length === 0) {
+            nodes.push({
+                id: x.toCity.id,
+                label: x.toCity.cityName,
+                x: x.toCity.xCoord,
+                y: x.toCity.yCoord,
+                size: nodeSize,
+                color: nodeColor
+            });
+        }
+
     }
 
     let edges = data.map(function (x) {
@@ -258,13 +312,14 @@ function drawRoadsAndCities(data) {
     // s.graph.kill();
 
     s.graph.read(graph);
+    // Put the startForceAtlas2 (redrawing here) it wont be shown how it rearranges the nodes
 // Ask sigma to draw it
     s.refresh();
 
-    s.startForceAtlas2();
-    window.setTimeout(function () {
-        s.killForceAtlas2()
-    }, 3000);
+    // s.startForceAtlas2();
+    // window.setTimeout(function () {
+    //     s.killForceAtlas2()
+    // }, 3000);
 
     console.log("Drawing Edges")
 }

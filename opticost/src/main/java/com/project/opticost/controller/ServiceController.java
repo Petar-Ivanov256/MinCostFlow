@@ -2,9 +2,8 @@ package com.project.opticost.controller;
 
 import com.project.opticost.db.model.City;
 import com.project.opticost.db.model.Road;
-import com.project.opticost.db.repo.CitiesRepository;
-import com.project.opticost.db.repo.RoadsRepository;
-import com.project.opticost.db.services.CitiesService;
+import com.project.opticost.db.services.CityService;
+import com.project.opticost.db.services.RoadService;
 import com.project.opticost.utils.requests.helpers.RoadRequestEntity;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,31 +25,28 @@ import java.util.List;
 public class ServiceController {
 
     @Autowired
-    CitiesRepository citiesRepo;
+    RoadService roadService;
 
     @Autowired
-    RoadsRepository roadsRepo;
-
-    @Autowired
-    CitiesService cityService;
+    CityService cityService;
 
     @RequestMapping(value = "/save-cities", method = RequestMethod.POST)
     public List<City> saveCities(@RequestBody List<City> cities) {
         for (City city : cities) {
-            City dbCity = citiesRepo.findByCityName(city.getCityName());
+            City dbCity = cityService.findByCityName(city.getCityName());
             if (dbCity != null) {
                 city.setId(dbCity.getId());
             }
         }
-        return citiesRepo.saveAll(cities);
+        return cityService.saveAll(cities);
     }
 
     @RequestMapping(value = "/save-roads", method = RequestMethod.POST)
     public List<Road> saveRoads(@RequestBody List<RoadRequestEntity> roads) {
         List<Road> results = new ArrayList<>();
         for (RoadRequestEntity road : roads) {
-            City fromCity = citiesRepo.findByCityName(road.getFromCity());
-            City toCity = citiesRepo.findByCityName(road.getToCity());
+            City fromCity = cityService.findByCityName(road.getFromCity());
+            City toCity = cityService.findByCityName(road.getToCity());
 
             Road roadEntity = new Road();
             roadEntity.setFromCity(fromCity);
@@ -60,7 +56,7 @@ public class ServiceController {
 
             results.add(roadEntity);
         }
-        return roadsRepo.saveAll(results);
+        return roadService.saveAll(results);
     }
 
     @ResponseBody
@@ -87,7 +83,7 @@ public class ServiceController {
             edge.setPrice(price);
             edge.setCapacity(capacity);
 
-            roadsRepo.saveAndFlush(edge);
+            roadService.saveAndFlush(edge);
             result.add(edge);
         }
 
