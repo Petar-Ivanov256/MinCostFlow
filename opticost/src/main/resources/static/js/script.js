@@ -98,8 +98,7 @@ function editCityRow() {
         let xCoord = $("#xCoord-" + index).val();
         let yCoord = $("#yCoord-" + index).val();
 
-        //TODO fix this check is not working
-        if (addedCities.filter(x => x.cityName === cityName).length === 0 &&
+        if (addedCities.filter(x => x.cityName === cityName).length === 0 ||
             addedCities.filter(x => x.xCoord === xCoord && x.yCoord === yCoord && x.deleted === false).length === 0) {
 
             addedCities[index].cityName = cityName;
@@ -108,7 +107,6 @@ function editCityRow() {
 
             // Unbind the events before removing the element in order to avoid replication of event listeners
             $(".editCity").off();
-            $(".removeCity").off();
             element.empty();
             element.html(drawCityRow(cityName, xCoord, yCoord));
 
@@ -120,7 +118,6 @@ function editCityRow() {
 
             // Unbind the events before removing the element in order to avoid replication of event listeners
             $(".editCity").off();
-            $(".removeCity").off();
             element.empty();
             element.html(drawCityRow(addedCities[index].cityName, addedCities[index].xCoord, addedCities[index].yCoord));
 
@@ -137,8 +134,9 @@ function removeCityRow() {
     let index = element.get(0).id.split("-")[1];
     addedCities[index].deleted = true;
     // Unbind the events before removing the element in order to avoid replication of event listeners
-    $(".remove").off();
+    $(".removeCity").off();
     element.remove();
+    $(".removeCity").on('click', removeCityRow);
 }
 
 function addCity() {
@@ -154,8 +152,7 @@ function addCity() {
         'deleted': false
     };
 
-    // TODO check this check
-    if (addedCities.filter(x => x.cityName === value.cityName).length === 0 &&
+    if (addedCities.filter(x => x.cityName === value.cityName && x.deleted === value.deleted).length === 0 &&
         addedCities.filter(x => x.xCoord === value.xCoord && x.yCoord === value.yCoord && x.deleted === value.deleted).length === 0) {
 
         let previousHtml = showTable.html();
