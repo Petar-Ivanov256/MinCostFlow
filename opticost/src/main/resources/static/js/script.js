@@ -2,7 +2,8 @@ var addedCities = [];
 var addedRoads = [];
 var s = null;
 var graph = {};
-var elementCnt = 0;
+var cityCnt = 0;
+var roadCnt = 0;
 
 var nodeSize = 3;
 var nodeColor = '#008cc2';
@@ -88,12 +89,12 @@ function editCityRow() {
     element.children().eq(1).html("<input type='number' id='xCoord-" + index + "' class='form-control' value='" + addedCities[index].xCoord + "'>");
     element.children().eq(2).html("<input type='number' id='yCoord-" + index + "' class='form-control' value='" + addedCities[index].yCoord + "'>");
     element.children().eq(3).html(
-        "<button type='button' id='save-" + index + "' class='btn btn-success btn-sm'>" +
+        "<button type='button' id='saveCity-" + index + "' class='btn btn-success btn-sm'>" +
         "<span class='glyphicon glyphicon-floppy-saved'></span> Save" +
         "</button>"
     );
 
-    $("#save-" + index).on('click', function () {
+    $("#saveCity-" + index).on('click', function () {
         let cityName = $("#cityName-" + index).val();
         let xCoord = $("#xCoord-" + index).val();
         let yCoord = $("#yCoord-" + index).val();
@@ -129,6 +130,41 @@ function editCityRow() {
 
 }
 
+function editRoadRow() {
+    let element = $(this).parent().parent();
+    let index = element.get(0).id.split("-")[1];
+    element.children().eq(0).html("<input type='text' id='fromCity-" + index + "' class='form-control' value='" + addedRoads[index].fromCity + "'>");
+    element.children().eq(1).html("<input type='text' id='toCity-" + index + "' class='form-control' value='" + addedRoads[index].toCity + "'>");
+    element.children().eq(2).html("<input type='number' id='capacity-" + index + "' class='form-control' value='" + addedRoads[index].capacity + "'>");
+    element.children().eq(3).html("<input type='number' id='price-" + index + "' class='form-control' value='" + addedRoads[index].price + "'>");
+    element.children().eq(4).html(
+        "<button type='button' id='saveRoad-" + index + "' class='btn btn-success btn-sm'>" +
+        "<span class='glyphicon glyphicon-floppy-saved'></span> Save" +
+        "</button>"
+    );
+
+    $("#saveRoad-" + index).on('click', function () {
+        let fromCity = $("#fromCity-" + index).val();
+        let toCity = $("#toCity-" + index).val();
+        let cap = $("#capacity-" + index).val();
+        let price = $("#price-" + index).val();
+
+        addedRoads[index].fromCity = fromCity;
+        addedRoads[index].toCity = toCity;
+        addedRoads[index].capacity = cap;
+        addedRoads[index].price = price;
+
+        // Unbind the events before removing the element in order to avoid replication of event listeners
+        $(".editRoad").off();
+        element.empty();
+        element.html(drawRoadRow(fromCity, toCity, cap, price));
+
+        $(".editRoad").on('click', editRoadRow);
+        $(".removeRoad").on('click', removeRoadRow);
+        $(this).off();
+    });
+}
+
 function removeCityRow() {
     let element = $(this).parent().parent();
     let index = element.get(0).id.split("-")[1];
@@ -137,6 +173,16 @@ function removeCityRow() {
     $(".removeCity").off();
     element.remove();
     $(".removeCity").on('click', removeCityRow);
+}
+
+function removeRoadRow() {
+    let element = $(this).parent().parent();
+    let index = element.get(0).id.split("-")[1];
+    addedRoads[index].deleted = true;
+    // Unbind the events before removing the element in order to avoid replication of event listeners
+    $(".removeRoad").off();
+    element.remove();
+    $(".removeRoad").on('click', removeRoadRow);
 }
 
 function addCity() {
@@ -157,13 +203,13 @@ function addCity() {
 
         let previousHtml = showTable.html();
         showTable.html(previousHtml +
-            "<tr id='city-" + elementCnt + "'>" +
+            "<tr id='city-" + cityCnt + "'>" +
             drawCityRow(cityName, xCoord, yCoord) +
             "</tr>"
         );
         $(".editCity").on('click', editCityRow);
         $(".removeCity").on('click', removeCityRow);
-        elementCnt = elementCnt + 1;
+        cityCnt = cityCnt + 1;
         addedCities.push(value);
     } else {
         console.log("Can't add the same city or different city with the same coordinates")
@@ -200,8 +246,26 @@ function addRoad() {
     let previousHtml = showTable.html();
     showTable.html(
         previousHtml +
-        "<tr>" +
-        "<td class='col-md-3'>" +
+        "<tr id='road-" + roadCnt + "'>" +
+        drawRoadRow(fromCity, toCity, cap, price) +
+        "</tr>"
+    );
+    $(".editRoad").on('click', editRoadRow);
+    $(".removeRoad").on('click', removeRoadRow);
+    roadCnt = roadCnt + 1;
+    addedRoads.push(
+        {
+            'fromCity': fromCity,
+            'toCity': toCity,
+            'capacity': cap,
+            'price': price,
+            'deleted': false
+        }
+    );
+}
+
+function drawRoadRow(fromCity, toCity, cap, price) {
+    return "<td class='col-md-3'>" +
         fromCity +
         "</td>" +
         "<td class='col-md-3'>" +
@@ -213,17 +277,14 @@ function addRoad() {
         "<td class='col-md-3'>" +
         price +
         "</td>" +
-        "</tr>"
-    );
-
-    addedRoads.push(
-        {
-            'fromCity': fromCity,
-            'toCity': toCity,
-            'capacity': cap,
-            'price': price
-        }
-    );
+        "<td class='col-md-3'>" +
+        "<button type='button' class='btn btn-info btn-sm editRoad'>" +
+        "<span class='glyphicon glyphicon-edit'></span> Edit" +
+        "</button>" +
+        "<button type='button' class='btn btn-danger btn-sm removeRoad'>" +
+        "<span class='glyphicon glyphicon-removeg'></span> Remove" +
+        "</button>" +
+        "</td>";
 }
 
 function saveCities() {
@@ -235,28 +296,29 @@ function saveCities() {
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         success: function (data) {
-            console.log("Success", data);
+            console.log("The cities were successfully saved", data);
             drawCities(data);
         },
         error: function (data) {
-            console.log("Error", data);
+            console.log("There is a problem can't save the cities", data);
         }
     });
 }
 
 function saveRoads() {
     console.log(addedRoads);
+    let data = addedRoads.filter(x => x.deleted === false);
     $.ajax({
         type: "POST",
         url: "/save-roads",
-        data: JSON.stringify(addedRoads),
+        data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         success: function (data) {
-            console.log("Success", data);
+            console.log("The roads were successfully saved", data);
             drawRoads(data);
         },
         error: function (data) {
-            console.log("Error", data);
+            console.log("There is a problem can't save the roads", data);
         }
     });
 }

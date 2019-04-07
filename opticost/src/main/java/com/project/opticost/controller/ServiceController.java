@@ -48,13 +48,15 @@ public class ServiceController {
             City fromCity = cityService.findByCityName(road.getFromCity());
             City toCity = cityService.findByCityName(road.getToCity());
 
-            Road roadEntity = new Road();
-            roadEntity.setFromCity(fromCity);
-            roadEntity.setToCity(toCity);
-            roadEntity.setCapacity(road.getCapacity());
-            roadEntity.setPrice(road.getPrice());
+            if(fromCity != null && toCity != null){
+                Road roadEntity = new Road();
+                roadEntity.setFromCity(fromCity);
+                roadEntity.setToCity(toCity);
+                roadEntity.setCapacity(road.getCapacity());
+                roadEntity.setPrice(road.getPrice());
 
-            results.add(roadEntity);
+                results.add(roadEntity);
+            }
         }
         return roadService.saveAll(results);
     }
