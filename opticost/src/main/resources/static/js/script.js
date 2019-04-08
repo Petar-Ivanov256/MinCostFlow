@@ -7,6 +7,14 @@ var roadCnt = 0;
 
 var nodeSize = 3;
 var nodeColor = '#008cc2';
+var notifySettings = {
+    // settings
+    type: 'danger',
+    placement: {
+        from: "bottom",
+        align: "left"
+    },
+};
 
 init();
 
@@ -213,6 +221,10 @@ function addCity() {
         addedCities.push(value);
     } else {
         console.log("Can't add the same city or different city with the same coordinates")
+        $.notify({
+            // options
+            message: "Can't add the same city or different city with the same coordinates"
+        },notifySettings);
     }
 }
 
