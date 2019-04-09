@@ -7,14 +7,6 @@ var roadCnt = 0;
 
 var nodeSize = 3;
 var nodeColor = '#008cc2';
-var notifySettings = {
-    // settings
-    type: 'danger',
-    placement: {
-        from: "bottom",
-        align: "left"
-    },
-};
 
 init();
 
@@ -123,7 +115,10 @@ function editCityRow() {
             $(".removeCity").on('click', removeCityRow);
             $(this).off();
         } else {
-            console.log("Can't add the same city or different city with the same coordinates")
+            $.notify({
+                // options
+                message: "Can't add the same city or different city with the same coordinates"
+            },notifySettings('danger'));
 
             // Unbind the events before removing the element in order to avoid replication of event listeners
             $(".editCity").off();
@@ -220,11 +215,10 @@ function addCity() {
         cityCnt = cityCnt + 1;
         addedCities.push(value);
     } else {
-        console.log("Can't add the same city or different city with the same coordinates")
         $.notify({
             // options
             message: "Can't add the same city or different city with the same coordinates"
-        },notifySettings);
+        },notifySettings('danger'));
     }
 }
 
@@ -310,9 +304,15 @@ function saveCities() {
         success: function (data) {
             console.log("The cities were successfully saved", data);
             drawCities(data);
+            $.notify({
+                message: "The cities were successfully saved"
+            },notifySettings('success'));
         },
         error: function (data) {
             console.log("There is a problem can't save the cities", data);
+            $.notify({
+                message: "There is a problem can't save the cities"
+            },notifySettings('danger'));
         }
     });
 }
@@ -328,9 +328,15 @@ function saveRoads() {
         success: function (data) {
             console.log("The roads were successfully saved", data);
             drawRoads(data);
+            $.notify({
+                message: "The roads were successfully saved"
+            },notifySettings('success'));
         },
         error: function (data) {
             console.log("There is a problem can't save the roads", data);
+            $.notify({
+                message: "There is a problem can't save the roads"
+            },notifySettings('danger'));
         }
     });
 }
@@ -454,11 +460,26 @@ function processFile() {
             contentType: false,
             success: function (data) {
                 drawRoadsAndCities(data)
+                $.notify({
+                    message: "Input processed successfully."
+                },notifySettings('success'));
+            },
+            error: function (data) {
+                $.notify({
+                    message: "File upload failed ..."
+                },notifySettings('danger'));
             }
-        }).done(function (data) {
-            alert('Input processed successfully.')
-        }).fail(function (data) {
-            alert('File upload failed ...');
         });
     }
+}
+
+function notifySettings(type) {
+    return {
+        // settings
+        type: type,
+        placement: {
+            from: "bottom",
+            align: "left"
+        },
+    };
 }
