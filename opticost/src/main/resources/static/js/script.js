@@ -17,6 +17,8 @@ function init() {
     $("#addRoad").on('click', addRoad);
     $("#saveRoad").on('click', saveRoads);
     $("#processFile").on('click', processFile);
+    $("#fromCity").on('click', noCitiesDropDown);
+    $("#toCity").on('click', noCitiesDropDown);
 
     // Initialise sigma:
     s = new sigma(
@@ -106,6 +108,7 @@ function editCityRow() {
             addedCities[index].xCoord = xCoord;
             addedCities[index].yCoord = yCoord;
 
+            updateCitiesDropDown();
             // Unbind the events before removing the element in order to avoid replication of event listeners
             $(".editCity").off();
             element.empty();
@@ -118,7 +121,7 @@ function editCityRow() {
             $.notify({
                 // options
                 message: "Can't add the same city or different city with the same coordinates"
-            },notifySettings('danger'));
+            }, notifySettings('danger'));
 
             // Unbind the events before removing the element in order to avoid replication of event listeners
             $(".editCity").off();
@@ -176,6 +179,7 @@ function removeCityRow() {
     $(".removeCity").off();
     element.remove();
     $(".removeCity").on('click', removeCityRow);
+    updateCitiesDropDown();
 }
 
 function removeRoadRow() {
@@ -214,11 +218,12 @@ function addCity() {
         $(".removeCity").on('click', removeCityRow);
         cityCnt = cityCnt + 1;
         addedCities.push(value);
+        updateCitiesDropDown();
     } else {
         $.notify({
             // options
             message: "Can't add the same city or different city with the same coordinates"
-        },notifySettings('danger'));
+        }, notifySettings('danger'));
     }
 }
 
@@ -306,13 +311,13 @@ function saveCities() {
             drawCities(data);
             $.notify({
                 message: "The cities were successfully saved"
-            },notifySettings('success'));
+            }, notifySettings('success'));
         },
         error: function (data) {
             console.log("There is a problem can't save the cities", data);
             $.notify({
                 message: "There is a problem can't save the cities"
-            },notifySettings('danger'));
+            }, notifySettings('danger'));
         }
     });
 }
@@ -330,13 +335,13 @@ function saveRoads() {
             drawRoads(data);
             $.notify({
                 message: "The roads were successfully saved"
-            },notifySettings('success'));
+            }, notifySettings('success'));
         },
         error: function (data) {
             console.log("There is a problem can't save the roads", data);
             $.notify({
                 message: "There is a problem can't save the roads"
-            },notifySettings('danger'));
+            }, notifySettings('danger'));
         }
     });
 }
@@ -462,12 +467,12 @@ function processFile() {
                 drawRoadsAndCities(data)
                 $.notify({
                     message: "Input processed successfully."
-                },notifySettings('success'));
+                }, notifySettings('success'));
             },
             error: function (data) {
                 $.notify({
                     message: "File upload failed ..."
-                },notifySettings('danger'));
+                }, notifySettings('danger'));
             }
         });
     }
@@ -482,4 +487,21 @@ function notifySettings(type) {
             align: "left"
         },
     };
+}
+
+function noCitiesDropDown() {
+    if (addedCities.filter(x => x.deleted === false).length === 0) {
+        $.notify({
+            message: "They are no entered cities. Please enter first cities"
+        }, notifySettings('info'));
+    }
+}
+
+function updateCitiesDropDown() {
+    let citiesHtml = addedCities.filter(x => x.deleted === false).map(function (value, index, array) {
+        return "<option value='" + value.cityName +"'>" + value.cityName + "</option>"
+    });
+
+    $("#fromCity").html(citiesHtml);
+    $("#toCity").html(citiesHtml);
 }
