@@ -1,5 +1,7 @@
 package com.project.opticost.algorithm;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import java.util.*;
 
 public class Graph {
@@ -145,33 +147,27 @@ public class Graph {
         return maxFlow;
     }
 
-    public Vertex findNegativeCycle(Vertex from)
-    {
-        Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);;
+    public Vertex findNegativeCycle(Vertex from) {
+        Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
+        ;
 
-        for(Vertex v : this.listOfVertices)
-        {
+        for (Vertex v : this.listOfVertices) {
             v.setDistance(Integer.MAX_VALUE);
             v.setParents(new ArrayList<>());
         }
         start.setDistance(0);
 
-        for (int i = 0; i < this.listOfVertices.size() - 1; i++)
-        {
-            for(Edge e : this.listOfEdges)
-            {
-                if (e.getTo().getDistance() > e.getFrom().getDistance() + e.getPrice())
-                {
-                    e.getTo().setDistance(e.getFrom().getDistance() + e .getPrice());
+        for (int i = 0; i < this.listOfVertices.size() - 1; i++) {
+            for (Edge e : this.listOfEdges) {
+                if (e.getTo().getDistance() > e.getFrom().getDistance() + e.getPrice()) {
+                    e.getTo().setDistance(e.getFrom().getDistance() + e.getPrice());
                     e.getTo().getParents().add(e.getFrom());
                 }
             }
         }
 
-        for (Edge e : this.listOfEdges)
-        {
-            if (e.getTo().getDistance() > e.getFrom().getDistance() + e.getPrice())
-            {
+        for (Edge e : this.listOfEdges) {
+            if (e.getTo().getDistance() > e.getFrom().getDistance() + e.getPrice()) {
                 return e.getTo();
             }
         }
@@ -179,34 +175,27 @@ public class Graph {
         return null;
     }
 
-    public Vertex findNegativeCycleInResidualGraph(Vertex from)
-    {
+    public Vertex findNegativeCycleInResidualGraph(Vertex from) {
         Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
         double[] parent = new double[adjMatrixSize];
 
         parent[start.getSeq()] = -1;
-        for (Vertex v : this.listOfVertices)
-        {
+        for (Vertex v : this.listOfVertices) {
             v.setDistance(Integer.MAX_VALUE);
             v.setParents(new ArrayList<>());
         }
         start.setDistance(0);
 
-        for (int i = 0; i < this.listOfVertices.size() - 1; i++)
-        {
-            for (int u = 0; u < adjMatrixSize; u++)
-            {
-                for (int v = 0; v < adjMatrixSize; v++)
-                {
-                    if (this.residualGraph[u][v] > 0)
-                    {
+        for (int i = 0; i < this.listOfVertices.size() - 1; i++) {
+            for (int u = 0; u < adjMatrixSize; u++) {
+                for (int v = 0; v < adjMatrixSize; v++) {
+                    if (this.residualGraph[u][v] > 0) {
                         //TODO could lead to bugs because I am searching vertex from Seq
                         int searchU = u;
                         int searchV = v;
                         Vertex uVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchU).findAny().orElse(null);
                         Vertex vVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchV).findAny().orElse(null);
-                        if (vVertex.getDistance() > uVertex.getDistance() + this.priceGraph[u][v])
-                        {
+                        if (vVertex.getDistance() > uVertex.getDistance() + this.priceGraph[u][v]) {
                             vVertex.setDistance(uVertex.getDistance() + this.priceGraph[u][v]);
                             vVertex.getParents().add(uVertex);
                             vVertex.setParent(uVertex);
@@ -217,18 +206,14 @@ public class Graph {
             }
         }
 
-        for (int u = 0; u < adjMatrixSize; u++)
-        {
-            for (int v = 0; v < adjMatrixSize; v++)
-            {
-                if (this.residualGraph[u][v] > 0)
-                {
+        for (int u = 0; u < adjMatrixSize; u++) {
+            for (int v = 0; v < adjMatrixSize; v++) {
+                if (this.residualGraph[u][v] > 0) {
                     int searchU = u;
                     int searchV = v;
                     Vertex uVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchU).findAny().orElse(null);
                     Vertex vVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchV).findAny().orElse(null);
-                    if (vVertex.getDistance() > uVertex.getDistance() + this.priceGraph[u][v])
-                    {
+                    if (vVertex.getDistance() > uVertex.getDistance() + this.priceGraph[u][v]) {
                         vVertex.getParents().add(uVertex);
                         return vVertex;
                     }
@@ -249,55 +234,42 @@ public class Graph {
         this.addEdge(new Edge(source, start, cargo, 0));
         this.addEdge(new Edge(end, dest, cargo, 0));
         //TODO make the flow to be int
-        int maxFlow = (int)this.maxFlow(source, dest);
+        int maxFlow = (int) this.maxFlow(source, dest);
 
-        if (maxFlow < cargo)
-        {
+        if (maxFlow < cargo) {
             //TODO make custom exception
             throw new Exception("There is no feasible solution for this sypply: " + cargo);
-        }
-        else
-        {
+        } else {
             this.establishFeasibleFLow(source, dest);
             this.generatePriceGraph();
         }
 
         Vertex vertexInLoop = this.findNegativeCycleInResidualGraph(start);
-        while (vertexInLoop != null)
-        {
+        while (vertexInLoop != null) {
             Vertex parent = vertexInLoop.getParents().get(vertexInLoop.getParents().size() - 1);
             List<Vertex> cycle = new ArrayList<>();
             //cycle.Add(vertexInLoop);
-            while (!cycle.contains(parent)/*parent != vertexInLoop*/)
-            {
+            while (!cycle.contains(parent)/*parent != vertexInLoop*/) {
                 cycle.add(parent);
-                parent = parent.getParents().get(parent.getParents().size() - 1)
+                parent = parent.getParents().get(parent.getParents().size() - 1);
             }
 
             List<Double> rFlows = new ArrayList<>();
-            for (int i = 0; i < cycle.size(); i++)
-            {
-                if (i == cycle.size() - 1)
-                {
+            for (int i = 0; i < cycle.size(); i++) {
+                if (i == cycle.size() - 1) {
                     rFlows.add(this.residualGraph[cycle.get(0).getSeq()][cycle.get(cycle.size() - 1).getSeq()]);
-                }
-                else
-                {
+                } else {
                     rFlows.add(this.residualGraph[cycle.get(i + 1).getSeq()][cycle.get(i).getSeq()]);
                 }
             }
 
             double minRFlow = rFlows.stream().mapToDouble(v -> v).min().orElseThrow(NoSuchElementException::new);
 
-            for (int i = 0; i < cycle.size(); i++)
-            {
-                if (i == cycle.size() - 1)
-                {
+            for (int i = 0; i < cycle.size(); i++) {
+                if (i == cycle.size() - 1) {
                     this.residualGraph[cycle.get(0).getSeq()][cycle.get(cycle.size() - 1).getSeq()] -= minRFlow;
                     this.residualGraph[cycle.get(cycle.size() - 1).getSeq()][cycle.get(0).getSeq()] += minRFlow;
-                }
-                else
-                {
+                } else {
                     this.residualGraph[cycle.get(i + 1).getSeq()][cycle.get(i).getSeq()] -= minRFlow;
                     this.residualGraph[cycle.get(i).getSeq()][cycle.get(i + 1).getSeq()] += minRFlow;
                 }
@@ -308,4 +280,113 @@ public class Graph {
 
         return 0;
     }
+
+    public void generatePriceGraph() {
+        //TODO Clean it also when you are deleteing vertices or edges
+        priceGraph = new double[adjMatrixSize][adjMatrixSize];
+
+        for (Edge e : this.listOfEdges) {
+            priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()] = e.getPrice();
+            priceGraph[e.getTo().getSeq()][e.getFrom().getSeq()] = -e.getPrice();
+        }
+    }
+
+    private void establishFeasibleFLowCostScaling(Vertex source, Vertex dest) {
+        this.removeVertex(source);
+        this.removeVertex(dest);
+
+        for (int i = 0; i < adjMatrixSize; i++) {
+            // The the indexes are reversed because in the residual network there is no edge "s" -> start and end -> "t"
+            // because we add artificial edges with the desired capacity of the supply and demand.
+            // That is why these edges are with full capacity and we have only the reversed edges in the Residual network
+            this.residualGraph[i][source.getSeq()] = 0;
+            this.residualGraph[dest.getSeq()][i] = 0;
+        }
+    }
+
+    private void establishFeasibleFLow(Vertex source, Vertex dest) {
+        this.removeVertex(source);
+        this.removeVertex(dest);
+
+        for (int i = 0; i < adjMatrixSize; i++) {
+            // The the indexes are reversed because in the residual network there is no edge "s" -> start and end -> "t"
+            // because we add artificial edges with the desired capacity of the supply and demand.
+            // That is why these edges are with full capacity and we have only the reversed edges in the Residual network
+            this.residualGraph[i][source.getSeq()] = 0;
+            this.residualGraph[dest.getSeq()][i] = 0;
+        }
+    }
+
+    private boolean BFS(Vertex from, Vertex to) {
+        int verticesCnt = this.listOfVertices.size();
+        for (Vertex vertex : this.listOfVertices) {
+            vertex.setVisited(false);
+        }
+
+        Queue<Vertex> queue = new ArrayDeque<>();
+        ((ArrayDeque<Vertex>) queue).addLast(from);
+        from.setVisited(true);
+
+        while (queue.size() != 0) {
+            Vertex curr = ((ArrayDeque<Vertex>) queue).getFirst();
+
+            for (Vertex v : this.listOfVertices) {
+                if (v.isVisited() == false && this.residualGraph[curr.getSeq()][v.getSeq()] > 0) {
+                    ((ArrayDeque<Vertex>) queue).addLast(v);
+                    v.addParent(curr);
+                    v.setVisited(true);
+                }
+            }
+        }
+
+        return (to.isVisited() == true);
+    }
+
+    private void updateAdjacencyMatrix() {
+        for (Vertex v : this.adjacencyList.keySet()) {
+            for (Edge e : this.adjacencyList.get(v)) {
+                if (adjMatrixSize > e.getFrom().getSeq() && adjMatrixSize > e.getTo().getSeq()) {
+                    adjacencyMatrix[e.getFrom().getSeq()][e.getTo().getSeq()] = e.getCapacity();
+                } else {
+                    this.updatadjMatrixSize();
+                }
+            }
+        }
+    }
+
+    public void printGraphMinCostFlow() {
+        double minCostFlow = 0;
+        for (Edge e : this.listOfEdges) {
+            minCostFlow += this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] *
+                    this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()];
+
+            System.out.println(e.getFrom() + " -> " + e.getTo() + " - Flow: " +
+                    this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] +
+                    " / Price: " + this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] *
+                    this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()]);
+        }
+        System.out.println("The min const flow is: " + minCostFlow);
+    }
+
+    public void printGraphMaxFlow() {
+        for (Edge e : this.listOfEdges) {
+            System.out.println(e.getFrom() + " -> " + e.getTo() + " = " +
+                    this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()]);
+        }
+    }
+
+    public void printVertexSeq() {
+        for (Vertex v : this.listOfVertices) {
+            System.out.println(v + " -> " + v.getSeq());
+        }
+    }
+
+    // TODO implement the method
+    private void updatadjMatrixSize() {
+        // Probably you need to rebuild Seq of vertex
+        throw new NotImplementedException();
+    }
+
+    //TODO: What happens if the goal destination has an outgoing arc
+
 }
