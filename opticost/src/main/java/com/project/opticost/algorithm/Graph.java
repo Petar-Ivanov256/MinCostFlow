@@ -1,9 +1,6 @@
 package com.project.opticost.algorithm;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Graph {
     private final int adjMatrixSize = 20;
@@ -120,7 +117,7 @@ public class Graph {
 
         double maxFlow = 0d;
         while (BFS(start, end)) {
-            double minFlow = double.MaxValue;
+            double minFlow = Double.MAX_VALUE;
             // TODO if you use only parenst for BFS you can use only one Vertex
             Vertex path = end;
             while (path.getParents().size() != 0) {
@@ -180,5 +177,135 @@ public class Graph {
         }
 
         return null;
+    }
+
+    public Vertex findNegativeCycleInResidualGraph(Vertex from)
+    {
+        Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
+        double[] parent = new double[adjMatrixSize];
+
+        parent[start.getSeq()] = -1;
+        for (Vertex v : this.listOfVertices)
+        {
+            v.setDistance(Integer.MAX_VALUE);
+            v.setParents(new ArrayList<>());
+        }
+        start.setDistance(0);
+
+        for (int i = 0; i < this.listOfVertices.size() - 1; i++)
+        {
+            for (int u = 0; u < adjMatrixSize; u++)
+            {
+                for (int v = 0; v < adjMatrixSize; v++)
+                {
+                    if (this.residualGraph[u][v] > 0)
+                    {
+                        //TODO could lead to bugs because I am searching vertex from Seq
+                        int searchU = u;
+                        int searchV = v;
+                        Vertex uVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchU).findAny().orElse(null);
+                        Vertex vVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchV).findAny().orElse(null);
+                        if (vVertex.getDistance() > uVertex.getDistance() + this.priceGraph[u][v])
+                        {
+                            vVertex.setDistance(uVertex.getDistance() + this.priceGraph[u][v]);
+                            vVertex.getParents().add(uVertex);
+                            vVertex.setParent(uVertex);
+                            parent[vVertex.getSeq()] = uVertex.getSeq();
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int u = 0; u < adjMatrixSize; u++)
+        {
+            for (int v = 0; v < adjMatrixSize; v++)
+            {
+                if (this.residualGraph[u][v] > 0)
+                {
+                    int searchU = u;
+                    int searchV = v;
+                    Vertex uVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchU).findAny().orElse(null);
+                    Vertex vVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchV).findAny().orElse(null);
+                    if (vVertex.getDistance() > uVertex.getDistance() + this.priceGraph[u][v])
+                    {
+                        vVertex.getParents().add(uVertex);
+                        return vVertex;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public int minCostFlowCycleCancel(Vertex from, Vertex to, int cargo) throws Exception {
+        Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
+        Vertex end = this.listOfVertices.stream().filter(x -> x.equals(to)).findAny().orElse(null);
+
+        Vertex source = new Vertex("s");
+        Vertex dest = new Vertex("t");
+
+        this.addEdge(new Edge(source, start, cargo, 0));
+        this.addEdge(new Edge(end, dest, cargo, 0));
+        //TODO make the flow to be int
+        int maxFlow = (int)this.maxFlow(source, dest);
+
+        if (maxFlow < cargo)
+        {
+            //TODO make custom exception
+            throw new Exception("There is no feasible solution for this sypply: " + cargo);
+        }
+        else
+        {
+            this.establishFeasibleFLow(source, dest);
+            this.generatePriceGraph();
+        }
+
+        Vertex vertexInLoop = this.findNegativeCycleInResidualGraph(start);
+        while (vertexInLoop != null)
+        {
+            Vertex parent = vertexInLoop.getParents().get(vertexInLoop.getParents().size() - 1);
+            List<Vertex> cycle = new ArrayList<>();
+            //cycle.Add(vertexInLoop);
+            while (!cycle.contains(parent)/*parent != vertexInLoop*/)
+            {
+                cycle.add(parent);
+                parent = parent.getParents().get(parent.getParents().size() - 1)
+            }
+
+            List<Double> rFlows = new ArrayList<>();
+            for (int i = 0; i < cycle.size(); i++)
+            {
+                if (i == cycle.size() - 1)
+                {
+                    rFlows.add(this.residualGraph[cycle.get(0).getSeq()][cycle.get(cycle.size() - 1).getSeq()]);
+                }
+                else
+                {
+                    rFlows.add(this.residualGraph[cycle.get(i + 1).getSeq()][cycle.get(i).getSeq()]);
+                }
+            }
+
+            double minRFlow = rFlows.stream().mapToDouble(v -> v).min().orElseThrow(NoSuchElementException::new);
+
+            for (int i = 0; i < cycle.size(); i++)
+            {
+                if (i == cycle.size() - 1)
+                {
+                    this.residualGraph[cycle.get(0).getSeq()][cycle.get(cycle.size() - 1).getSeq()] -= minRFlow;
+                    this.residualGraph[cycle.get(cycle.size() - 1).getSeq()][cycle.get(0).getSeq()] += minRFlow;
+                }
+                else
+                {
+                    this.residualGraph[cycle.get(i + 1).getSeq()][cycle.get(i).getSeq()] -= minRFlow;
+                    this.residualGraph[cycle.get(i).getSeq()][cycle.get(i + 1).getSeq()] += minRFlow;
+                }
+            }
+
+            vertexInLoop = this.findNegativeCycleInResidualGraph(start);
+        }
+
+        return 0;
     }
 }
