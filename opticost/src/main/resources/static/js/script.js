@@ -19,6 +19,7 @@ function init() {
     $("#processFile").on('click', processFile);
     $("#fromCity").on('click', noCitiesDropDown);
     $("#toCity").on('click', noCitiesDropDown);
+    $("#runMulticost").on('click', runMulticost);
 
     // Initialise sigma:
     s = new sigma(
@@ -504,4 +505,19 @@ function updateCitiesDropDown() {
 
     $("#fromCity").html(citiesHtml);
     $("#toCity").html(citiesHtml);
+}
+
+function runMulticost() {
+    $.ajax({
+        type: "POST",
+        url: "/run",
+        // data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            console.log("Success", data);
+        },
+        error: function (data) {
+            console.log("Error", data);
+        }
+    });
 }

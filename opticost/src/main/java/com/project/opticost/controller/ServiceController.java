@@ -1,5 +1,8 @@
 package com.project.opticost.controller;
 
+import com.project.opticost.algorithm.Edge;
+import com.project.opticost.algorithm.Graph;
+import com.project.opticost.algorithm.Vertex;
 import com.project.opticost.db.model.City;
 import com.project.opticost.db.model.Road;
 import com.project.opticost.db.services.CityService;
@@ -113,6 +116,24 @@ public class ServiceController {
 //        });
 
         return result;
+    }
+
+    @RequestMapping(value = "/run", method = RequestMethod.POST)
+    public void runMinCostFlow() throws Exception {
+        Graph graph = new Graph();
+
+        Vertex v0 = new Vertex("0");
+        Vertex v1 = new Vertex("1");
+        Vertex v2 = new Vertex("2");
+
+        graph.addEdge(new Edge(v0, v1, 2, 7));
+        graph.addEdge(new Edge(v0, v2, 10, 16));
+        graph.addEdge(new Edge(v1, v2, 5, 4));
+
+
+//        graph.minCostFlowCostScaling(new Vertex("0"), new Vertex("2"), 4);
+        graph.minCostFlowCycleCancel(new Vertex("0"), new Vertex("2"), 4);
+        graph.printGraphMinCostFlow();
     }
 
 }

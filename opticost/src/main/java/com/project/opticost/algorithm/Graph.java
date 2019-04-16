@@ -54,7 +54,7 @@ public class Graph {
             int seq = Vertex.getNextSeq();
             listOfVertices.add(edge.getFrom());
             edge.getFrom().setSeq(seq);
-            Vertex.setNextSeq(seq++);
+            Vertex.setNextSeq(seq + 1);
         } else {
             edge.setFrom(this.listOfVertices.stream()
                     .filter(x -> x.equals(edge.getFrom()))
@@ -65,7 +65,7 @@ public class Graph {
             int seq = Vertex.getNextSeq();
             listOfVertices.add(edge.getTo());
             edge.getTo().setSeq(seq);
-            Vertex.setNextSeq(seq++);
+            Vertex.setNextSeq(seq + 1);
         } else {
             edge.setTo(this.listOfVertices.stream()
                     .filter(x -> x.equals(edge.getTo()))
@@ -328,7 +328,7 @@ public class Graph {
         from.setVisited(true);
 
         while (queue.size() != 0) {
-            Vertex curr = ((ArrayDeque<Vertex>) queue).getFirst();
+            Vertex curr = ((ArrayDeque<Vertex>) queue).removeFirst();
 
             for (Vertex v : this.listOfVertices) {
                 if (v.isVisited() == false && this.residualGraph[curr.getSeq()][v.getSeq()] > 0) {
