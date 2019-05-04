@@ -1,5 +1,6 @@
 var addedCities = [];
 var addedRoads = [];
+let planName = null;
 var s = null;
 var graph = {};
 var cityCnt = 0;
@@ -20,6 +21,8 @@ function init() {
     $("#fromCity").on('click', noCitiesDropDown);
     $("#toCity").on('click', noCitiesDropDown);
     $("#runMulticost").on('click', runMulticost);
+    $("#savePlanName").on('click', savePlan);
+    $("#verticesEdges").hide();
 
     // Initialise sigma:
     s = new sigma(
@@ -520,4 +523,17 @@ function runMulticost() {
             console.log("Error", data);
         }
     });
+}
+
+function savePlan() {
+    let inputPlanName = $("#planName").val();
+
+    if(inputPlanName !== null && inputPlanName !== ""){
+       console.log(inputPlanName)
+        $("#verticesEdges").show();
+    }else{
+        $.notify({
+            message: "There is no name for the plan"
+        }, notifySettings('danger'));
+    }
 }

@@ -1,5 +1,7 @@
 package com.project.opticost.db.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
 
@@ -23,6 +25,11 @@ public class Road {
 
     @Column(name = "price")
     private BigDecimal price;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plan_id")
+    @JsonIgnore
+    private Plan plan;
 
     public Road() {}
 
@@ -64,5 +71,13 @@ public class Road {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public Plan getPlan() {
+        return plan;
+    }
+
+    public void setPlan(Plan plan) {
+        this.plan = plan;
     }
 }

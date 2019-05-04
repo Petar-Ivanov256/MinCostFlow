@@ -56,55 +56,71 @@
 <div class="wrapper">
     <div class="input-part col-md-3">
         <div>
-            <h3>Add Vertices</h3>
+            <h3>Plan</h3>
+            <select class="form-control" id="plan-name">
+                <option value="new">New Plan</option>
+            </select>
             <div class="form-row">
-                <div class="form-group col-md-5">
-                    <label for="inputCityName">City name</label>
-                    <input type="text" class="form-control" id="inputCityName">
+                <div class="form-group col-md-12">
+                    <label for="planName">Name</label>
+                    <input type="text" class="form-control" id="planName">
                 </div>
-                <div class="form-group col-md-3">
-                    <label for="inputX">Coord X</label>
-                    <input type="number" class="form-control" id="inputX">
-                </div>
-                <div class="form-group col-md-3">
-                    <label for="inputY">Coor Y</label>
-                    <input type="number" class="form-control" id="inputY">
-                </div>
-                <button class="btn btn-primary add" id="addCityBtn">Add</button>
+                <button class="btn btn-primary add" id="savePlanName">Save</button>
             </div>
-            <table id="showCities" class="col-md-12">
-
-            </table>
-            <button class="btn btn-primary save" id="saveCities">Save</button>
         </div>
-        <hr>
-        <div>
-            <h3>Add Edges</h3>
-            <div class="form-row">
-                <div class="form-group col-md-4">
-                    <label for="fromCity">From</label>
-                    <select class="form-control" id="fromCity">
-                    </select>
+        <div id="verticesEdges">
+            <hr>
+            <div>
+                <h3>Add Vertices</h3>
+                <div class="form-row">
+                    <div class="form-group col-md-5">
+                        <label for="inputCityName">City name</label>
+                        <input type="text" class="form-control" id="inputCityName">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="inputX">Coord X</label>
+                        <input type="number" class="form-control" id="inputX">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="inputY">Coor Y</label>
+                        <input type="number" class="form-control" id="inputY">
+                    </div>
+                    <button class="btn btn-primary add" id="addCityBtn">Add</button>
                 </div>
-                <div class="form-group col-md-4">
-                    <label for="toCity">To</label>
-                    <select class="form-control" id="toCity">
-                    </select>
-                </div>
-                <div class="form-group col-md-3">
-                    <label for="inputCap">Capacity</label>
-                    <input type="number" class="form-control" id="inputCap">
-                </div>
-                <div class="form-group col-md-3">
-                    <label for="inputPrice">Price</label>
-                    <input type="number" class="form-control" id="inputPrice">
-                </div>
-                <button class="btn btn-primary add" id="addRoad">Add</button>
-            </div>
-            <table id="showRoads" class="col-md-12">
+                <table id="showCities" class="col-md-12">
 
-            </table>
-            <button class="btn btn-primary save" id="saveRoad">Save</button>
+                </table>
+                <button class="btn btn-primary save" id="saveCities">Save</button>
+            </div>
+            <hr>
+            <div>
+                <h3>Add Edges</h3>
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label for="fromCity">From</label>
+                        <select class="form-control" id="fromCity">
+                        </select>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="toCity">To</label>
+                        <select class="form-control" id="toCity">
+                        </select>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="inputCap">Capacity</label>
+                        <input type="number" class="form-control" id="inputCap">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="inputPrice">Price</label>
+                        <input type="number" class="form-control" id="inputPrice">
+                    </div>
+                    <button class="btn btn-primary add" id="addRoad">Add</button>
+                </div>
+                <table id="showRoads" class="col-md-12">
+
+                </table>
+                <button class="btn btn-primary save" id="saveRoad">Save</button>
+            </div>
         </div>
         <hr>
         <div>
@@ -118,6 +134,7 @@
 
             <button class="btn btn-primary save" id="processFile">Process file</button>
         </div>
+        <hr>
         <div>
             <button class="btn btn-primary save" id="runMulticost">Run multicost</button>
         </div>

@@ -21,8 +21,8 @@ namespace MinCostFlow
             graph.addEdge(new Edge(v1, v2, 5, 4));
 
 
-            graph.minCostFlowCostScaling(new Vertex("0"), new Vertex("2"), 4);
-            //graph.minCostFlowCycleCancel(new Vertex("0"), new Vertex("2"), 4);
+            //graph.minCostFlowCostScaling(new Vertex("0"), new Vertex("2"), 4);
+            graph.minCostFlowCycleCancel(new Vertex("0"), new Vertex("2"), 4);
             graph.printGraphMinCostFlow();
 
             //var v0 = new Vertex("0");
