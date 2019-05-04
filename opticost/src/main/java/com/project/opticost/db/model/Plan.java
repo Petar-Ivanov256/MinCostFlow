@@ -11,8 +11,8 @@ public class Plan {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "plan_name", unique = true)
-    private String planName;
+    @Column(name = "name", unique = true)
+    private String name;
 
     @OneToMany(
             mappedBy = "plan",
@@ -41,11 +41,11 @@ public class Plan {
     }
 
     public String getPlanName() {
-        return planName;
+        return name;
     }
 
     public void setPlanName(String planName) {
-        this.planName = planName;
+        this.name = planName;
     }
 
     public List<Road> getRoads() {

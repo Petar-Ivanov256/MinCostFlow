@@ -4,9 +4,12 @@ import com.project.opticost.algorithm.Edge;
 import com.project.opticost.algorithm.Graph;
 import com.project.opticost.algorithm.Vertex;
 import com.project.opticost.db.model.City;
+import com.project.opticost.db.model.Plan;
 import com.project.opticost.db.model.Road;
 import com.project.opticost.db.services.CityService;
+import com.project.opticost.db.services.PlanService;
 import com.project.opticost.db.services.RoadService;
+import com.project.opticost.utils.requests.helpers.PlanRequstEntity;
 import com.project.opticost.utils.requests.helpers.RoadRequestEntity;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +36,9 @@ public class ServiceController {
     @Autowired
     CityService cityService;
 
+    @Autowired
+    PlanService planService;
+
     @RequestMapping(value = "/save-cities", method = RequestMethod.POST)
     public List<City> saveCities(@RequestBody List<City> cities) {
         for (City city : cities) {
@@ -44,24 +50,25 @@ public class ServiceController {
         return cityService.saveAll(cities);
     }
 
+    //TODO put all Roads to have a Plan
     @RequestMapping(value = "/save-roads", method = RequestMethod.POST)
     public List<Road> saveRoads(@RequestBody List<RoadRequestEntity> roads) {
-        List<Road> results = new ArrayList<>();
-        for (RoadRequestEntity road : roads) {
-            City fromCity = cityService.findByCityName(road.getFromCity());
-            City toCity = cityService.findByCityName(road.getToCity());
+        return roadService.saveAll(extractRoads(roads));
+    }
 
-            if(fromCity != null && toCity != null){
-                Road roadEntity = new Road();
-                roadEntity.setFromCity(fromCity);
-                roadEntity.setToCity(toCity);
-                roadEntity.setCapacity(road.getCapacity());
-                roadEntity.setPrice(road.getPrice());
+    @RequestMapping(value = "/save-plan", method = RequestMethod.POST)
+    public Plan savePlan(@RequestBody PlanRequstEntity plan) {
+        Plan planEntity = new Plan();
+        Plan dbPlan = planService.findByPlanName(plan.getName());
 
-                results.add(roadEntity);
-            }
+        if(dbPlan != null){
+            planEntity.setId(dbPlan.getId());
         }
-        return roadService.saveAll(results);
+
+        planEntity.setPlanName(plan.getName());
+        planEntity.setRoads(extractRoads(plan.getRoads()));
+
+        return planService.saveAndFlush(planEntity);
     }
 
     @ResponseBody
@@ -136,4 +143,23 @@ public class ServiceController {
         graph.printGraphMinCostFlow();
     }
 
+    private List<Road> extractRoads(List<RoadRequestEntity> roads){
+        List<Road> results = new ArrayList<>();
+        for (RoadRequestEntity road : roads) {
+            City fromCity = cityService.findByCityName(road.getFromCity());
+            City toCity = cityService.findByCityName(road.getToCity());
+
+            if(fromCity != null && toCity != null){
+                Road roadEntity = new Road();
+                roadEntity.setFromCity(fromCity);
+                roadEntity.setToCity(toCity);
+                roadEntity.setCapacity(road.getCapacity());
+                roadEntity.setPrice(road.getPrice());
+
+                results.add(roadEntity);
+            }
+        }
+
+        return results;
+    }
 }

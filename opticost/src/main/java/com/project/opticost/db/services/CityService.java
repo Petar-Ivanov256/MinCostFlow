@@ -1,7 +1,7 @@
 package com.project.opticost.db.services;
 
 import com.project.opticost.db.model.City;
-import com.project.opticost.db.repo.CitiesRepository;
+import com.project.opticost.db.repo.CityRepository;
 import com.project.opticost.db.services.interfaces.AbstractService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +15,7 @@ import java.util.NoSuchElementException;
 public class CityService extends AbstractService<City,Long> {
 
     @Autowired
-    CitiesRepository citiesRepo;
+    CityRepository citiesRepo;
 
     @Override
     public JpaRepository<City, Long> getRepo() {
