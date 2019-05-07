@@ -148,6 +148,7 @@ public class ServiceController {
         for (RoadRequestEntity road : roads) {
             City fromCity = cityService.findByCityName(road.getFromCity());
             City toCity = cityService.findByCityName(road.getToCity());
+            Plan plan = planService.findByPlanName(road.getPlanName());
 
             if(fromCity != null && toCity != null){
                 Road roadEntity = new Road();
@@ -155,6 +156,7 @@ public class ServiceController {
                 roadEntity.setToCity(toCity);
                 roadEntity.setCapacity(road.getCapacity());
                 roadEntity.setPrice(road.getPrice());
+                roadEntity.setPlan(plan);
 
                 results.add(roadEntity);
             }

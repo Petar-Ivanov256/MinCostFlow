@@ -1,6 +1,6 @@
 var addedCities = [];
 var addedRoads = [];
-let planName = null;
+var plan = {};
 var s = null;
 var graph = {};
 var cityCnt = 0;
@@ -274,7 +274,8 @@ function addRoad() {
             'toCity': toCity,
             'capacity': cap,
             'price': price,
-            'deleted': false
+            'deleted': false,
+            'planName': plan.name
         }
     );
 }
@@ -529,8 +530,23 @@ function savePlan() {
     let inputPlanName = $("#planName").val();
 
     if(inputPlanName !== null && inputPlanName !== ""){
-       console.log(inputPlanName)
-        $("#verticesEdges").show();
+       plan = {
+           name: inputPlanName,
+           roads: []
+       };
+        $.ajax({
+            type: "POST",
+            url: "/save-plan",
+            data: JSON.stringify(plan),
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                console.log("Success", data);
+                $("#verticesEdges").show();
+            },
+            error: function (data) {
+                console.log("Error", data);
+            }
+        });
     }else{
         $.notify({
             message: "There is no name for the plan"

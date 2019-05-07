@@ -7,6 +7,7 @@ public class RoadRequestEntity {
     private String toCity;
     private double capacity;
     private BigDecimal price;
+    private String planName;
 
     public String getFromCity() {
         return fromCity;
@@ -38,5 +39,13 @@ public class RoadRequestEntity {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public String getPlanName() {
+        return planName;
+    }
+
+    public void setPlanName(String planName) {
+        this.planName = planName;
     }
 }
