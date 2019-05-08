@@ -19,7 +19,7 @@ public class PlanService extends AbstractService<Plan, Long> {
     }
 
     public Plan findByPlanName(String planName) {
-        return planRepo.findByPlanName(planName);
+        return planRepo.findByName(planName);
     }
 }
 

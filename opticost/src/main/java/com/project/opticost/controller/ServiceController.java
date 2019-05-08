@@ -56,6 +56,11 @@ public class ServiceController {
         return roadService.saveAll(extractRoads(roads));
     }
 
+    @RequestMapping(value = "/plans", method = RequestMethod.GET)
+    public List<Plan> gePlans() {
+        return planService.findAll();
+    }
+
     @RequestMapping(value = "/save-plan", method = RequestMethod.POST)
     public Plan savePlan(@RequestBody PlanRequstEntity plan) {
         Plan planEntity = new Plan();
@@ -99,6 +104,10 @@ public class ServiceController {
             result.add(edge);
         }
 
+        Plan plan = new Plan();
+        plan.setPlanName(multipartFile.getName());
+        plan.setRoads(result);
+        planService.saveAndFlush(plan);
 //        Function<String, Road> mapToItem = (line) -> {
 //            String[] data = line.split(",");
 //

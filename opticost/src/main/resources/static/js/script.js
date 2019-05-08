@@ -23,6 +23,7 @@ function init() {
     $("#runMulticost").on('click', runMulticost);
     $("#savePlanName").on('click', savePlan);
     $("#verticesEdges").hide();
+    showPlans();
 
     // Initialise sigma:
     s = new sigma(
@@ -552,4 +553,18 @@ function savePlan() {
             message: "There is no name for the plan"
         }, notifySettings('danger'));
     }
+}
+
+function showPlans() {
+    $.ajax({
+        type: "GET",
+        url: "/plans",
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            console.log("Success", data);
+        },
+        error: function (data) {
+            console.log("Error", data);
+        }
+    });
 }

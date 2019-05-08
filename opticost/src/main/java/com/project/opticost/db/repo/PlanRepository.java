@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PlanRepository extends JpaRepository<Plan, Long> {
-    Plan findByPlanName(String cityName);
+    Plan findByName(String cityName);
 }

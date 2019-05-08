@@ -17,7 +17,8 @@ public class Plan {
     @OneToMany(
             mappedBy = "plan",
             cascade = CascadeType.ALL,
-            orphanRemoval = true
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
     )
     private List<Road> roads = new ArrayList<>();
 
