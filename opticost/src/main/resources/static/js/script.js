@@ -1,6 +1,7 @@
 var addedCities = [];
 var addedRoads = [];
 var plan = {};
+var plans = [];
 var s = null;
 var graph = {};
 var cityCnt = 0;
@@ -24,6 +25,7 @@ function init() {
     $("#savePlanName").on('click', savePlan);
     $("#verticesEdges").hide();
     showPlans();
+    $('#plan-name').change(selectedPlan);
 
     // Initialise sigma:
     s = new sigma(
@@ -197,11 +199,23 @@ function removeRoadRow() {
     $(".removeRoad").on('click', removeRoadRow);
 }
 
-function addCity() {
-    let cityName = $("#inputCityName").val();
-    let xCoord = $("#inputX").val();
-    let yCoord = $("#inputY").val();
+function addCity(cityData) {
+    let cityName = null;
+    let xCoord = null;
+    let yCoord = null;
     let showTable = $("#showCities");
+
+    // Check if the function was called from event handler (UI button)
+    if(cityData.target){
+        cityName = $("#inputCityName").val();
+        xCoord = $("#inputX").val();
+        yCoord = $("#inputY").val();
+    }else{
+        cityName = cityData.cityName;
+        xCoord = cityData.xCoord;
+        yCoord = cityData.yCoord;
+    }
+
 
     let value = {
         'cityName': cityName,
@@ -252,12 +266,25 @@ function drawCityRow(cityName, xCoord, yCoord) {
         "</td>";
 }
 
-function addRoad() {
-    let fromCity = $("#fromCity").val();
-    let toCity = $("#toCity").val();
-    let cap = $("#inputCap").val();
-    let price = $("#inputPrice").val();
+function addRoad(roadData) {
+    let fromCity = null;
+    let toCity = null;
+    let cap = null;
+    let price = null;
     let showTable = $("#showRoads");
+
+    // Check if the function was called from event handler (UI button)
+    if(roadData.target){
+        fromCity = $("#fromCity").val();
+        toCity = $("#toCity").val();
+        cap = $("#inputCap").val();
+        price = $("#inputPrice").val();
+    }else{
+        fromCity = roadData.fromCity;
+        toCity = roadData.toCity;
+        cap = roadData.capacity;
+        price = roadData.price;
+    }
 
     let previousHtml = showTable.html();
     showTable.html(
@@ -562,9 +589,20 @@ function showPlans() {
         contentType: "application/json; charset=utf-8",
         success: function (data) {
             console.log("Success", data);
+            plans = data;
+            for (let i = 0; i < data.length; i++) {
+                $('#plan-name').append($('<option>', {value:data[i].planName, text:data[i].planName}));
+            }
         },
         error: function (data) {
             console.log("Error", data);
         }
     });
+}
+
+function selectedPlan() {
+    let selectedPlan = plans.filter(x => x.planName === $(this).val())[0];
+    addCity(selectedPlan);
+    $("#verticesEdges").show();
+    console.log(selectedPlan)
 }
