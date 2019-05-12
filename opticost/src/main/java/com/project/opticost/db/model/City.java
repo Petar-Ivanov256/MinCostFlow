@@ -80,4 +80,19 @@ public class City {
         this.setxCoord(other.getxCoord());
         this.setyCoord(other.getyCoord());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof City)) return false;
+
+        City city = (City) o;
+
+        return cityName.equals(city.cityName);
+    }
+
+    @Override
+    public int hashCode() {
+        return cityName.hashCode();
+    }
 }

@@ -1,14 +1,15 @@
 package com.project.opticost.algorithm;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 public class Edge {
     private Vertex from;
     private Vertex to;
-    private int capacity;
-    private double price;
+    private double capacity;
+    private BigDecimal price;
 
-    public Edge(Vertex from, Vertex to, int capacity, double price)
+    public Edge(Vertex from, Vertex to, double capacity, BigDecimal price)
     {
         this.from = from;
         this.to = to;
@@ -32,19 +33,19 @@ public class Edge {
         this.to = to;
     }
 
-    public int getCapacity() {
+    public double getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(int capacity) {
+    public void setCapacity(double capacity) {
         this.capacity = capacity;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 

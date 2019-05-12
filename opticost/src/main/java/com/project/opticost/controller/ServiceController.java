@@ -23,9 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @RestController
 public class ServiceController {
@@ -50,7 +48,6 @@ public class ServiceController {
         return cityService.saveAll(cities);
     }
 
-    //TODO put all Roads to have a Plan
     @RequestMapping(value = "/save-roads", method = RequestMethod.POST)
     public List<Road> saveRoads(@RequestBody List<RoadRequestEntity> roads) {
         return roadService.saveAll(extractRoads(roads));
@@ -135,19 +132,52 @@ public class ServiceController {
     }
 
     @RequestMapping(value = "/run", method = RequestMethod.POST)
-    public void runMinCostFlow() throws Exception {
+    public void runMinCostFlow(@RequestParam String planName) throws Exception {
         Graph graph = new Graph();
+        Plan plan = planService.findByPlanName(planName);
+        Set<City> citySet = new HashSet<>();
 
-        Vertex v0 = new Vertex("0");
-        Vertex v1 = new Vertex("1");
-        Vertex v2 = new Vertex("2");
+        if(plan != null){
+            for (Road road : plan.getRoads()) {
+                citySet.add(road.getFromCity());
+                citySet.add(road.getToCity());
+            }
 
-        graph.addEdge(new Edge(v0, v1, 2, 7));
-        graph.addEdge(new Edge(v0, v2, 10, 16));
-        graph.addEdge(new Edge(v1, v2, 5, 4));
+            List<Vertex> vertices = new ArrayList<>();
+            for (City city : citySet) {
+                vertices.add(new Vertex(city.getCityName()));
+            }
+
+            for (Road road : plan.getRoads()) {
+                Vertex fromVertex = vertices.stream()
+                        .filter(x -> x.getName().equals(road.getFromCity().getCityName()))
+                        .findFirst()
+                        .get();
+
+                Vertex toVertex = vertices.stream()
+                        .filter(x -> x.getName().equals(road.getToCity().getCityName()))
+                        .findFirst()
+                        .get();
+
+                graph.addEdge(new Edge(fromVertex, toVertex, road.getCapacity(), road.getPrice()));
+            }
+        }
+
+
+
+
+//        Vertex v0 = new Vertex("0");
+//        Vertex v1 = new Vertex("1");
+//        Vertex v2 = new Vertex("2");
+//
+//        graph.addEdge(new Edge(v0, v1, 2, 7));
+//        graph.addEdge(new Edge(v0, v2, 10, 16));
+//        graph.addEdge(new Edge(v1, v2, 5, 4));
 
 
 //        graph.minCostFlowCostScaling(new Vertex("0"), new Vertex("2"), 4);
+
+        // TODO make the UI to accept from to and cargo
         graph.minCostFlowCycleCancel(new Vertex("0"), new Vertex("2"), 4);
         graph.printGraphMinCostFlow();
     }

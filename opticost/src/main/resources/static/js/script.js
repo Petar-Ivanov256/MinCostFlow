@@ -2,6 +2,7 @@ var addedCities = [];
 var addedRoads = [];
 var plan = {};
 var plans = [];
+var selectedPlan = null;
 var s = null;
 var graph = {};
 var cityCnt = 0;
@@ -25,7 +26,7 @@ function init() {
     $("#runMulticost").on('click', runMulticost);
     $("#savePlanName").on('click', savePlan);
     showPlans();
-    $('#plan-name').change(selectedPlan);
+    $('#plan-name').change(onPlanChange);
 
     // Initialise sigma:
     s = new sigma(
@@ -115,7 +116,8 @@ function editCityRow() {
             addedCities[index].xCoord = xCoord;
             addedCities[index].yCoord = yCoord;
 
-            updateCitiesDropDown();
+            updateCitiesDropDown("#fromCity");
+            updateCitiesDropDown("#toCity");
             // Unbind the events before removing the element in order to avoid replication of event listeners
             $(".editCity").off();
             element.empty();
@@ -147,8 +149,13 @@ function editRoadRow() {
     let element = $(this).parent().parent();
     let index = element.get(0).id.split("-")[1];
     //TODO make the city names to be dropdowns
-    element.children().eq(0).html("<input type='text' id='fromCity-" + index + "' class='form-control' value='" + addedRoads[index].fromCity + "'>");
-    element.children().eq(1).html("<input type='text' id='toCity-" + index + "' class='form-control' value='" + addedRoads[index].toCity + "'>");
+    // element.children().eq(0).html("<input type='text' id='fromCity-" + index + "' class='form-control' value='" + addedRoads[index].fromCity + "'>");
+    element.children().eq(0).html("<select class='form-control' id='fromCity-'" + index + "></select>");
+    updateCitiesDropDown("#fromCity-" + index);
+    // element.children().eq(1).html("<input type='text' id='toCity-" + index + "' class='form-control' value='" + addedRoads[index].toCity + "'>");
+    element.children().eq(0).html("<select class='form-control' id='toCity-'" + index + "></select>");
+    updateCitiesDropDown("#toCity-" + index);
+
     element.children().eq(2).html("<input type='number' id='capacity-" + index + "' class='form-control' value='" + addedRoads[index].capacity + "'>");
     element.children().eq(3).html("<input type='number' id='price-" + index + "' class='form-control' value='" + addedRoads[index].price + "'>");
     element.children().eq(4).html(
@@ -187,7 +194,8 @@ function removeCityRow() {
     $(".removeCity").off();
     element.remove();
     $(".removeCity").on('click', removeCityRow);
-    updateCitiesDropDown();
+    updateCitiesDropDown("#fromCity");
+    updateCitiesDropDown("#toCity");
 }
 
 function removeRoadRow() {
@@ -207,11 +215,11 @@ function addCity(cityData) {
     let showTable = $("#showCities");
 
     // Check if the function was called from event handler (UI button)
-    if(cityData.target){
+    if (cityData.target) {
         cityName = $("#inputCityName").val();
         xCoord = $("#inputX").val();
         yCoord = $("#inputY").val();
-    }else{
+    } else {
         cityName = cityData.cityName;
         xCoord = cityData.xCoord;
         yCoord = cityData.yCoord;
@@ -238,7 +246,8 @@ function addCity(cityData) {
         $(".removeCity").on('click', removeCityRow);
         cityCnt = cityCnt + 1;
         addedCities.push(value);
-        updateCitiesDropDown();
+        updateCitiesDropDown("#fromCity");
+        updateCitiesDropDown("#toCity");
     } else {
         $.notify({
             // options
@@ -275,12 +284,12 @@ function addRoad(roadData) {
     let showTable = $("#showRoads");
 
     // Check if the function was called from event handler (UI button)
-    if(roadData.target){
+    if (roadData.target) {
         fromCity = $("#fromCity").val();
         toCity = $("#toCity").val();
         cap = $("#inputCap").val();
         price = $("#inputPrice").val();
-    }else{
+    } else {
         fromCity = roadData.fromCity.cityName;
         toCity = roadData.toCity.cityName;
         cap = roadData.capacity;
@@ -531,20 +540,21 @@ function noCitiesDropDown() {
     }
 }
 
-function updateCitiesDropDown() {
+function updateCitiesDropDown(elemetSelector) {
     let citiesHtml = addedCities.filter(x => x.deleted === false).map(function (value, index, array) {
-        return "<option value='" + value.cityName +"'>" + value.cityName + "</option>"
+        return "<option value='" + value.cityName + "'>" + value.cityName + "</option>"
     });
 
-    $("#fromCity").html(citiesHtml);
-    $("#toCity").html(citiesHtml);
+    // $("#fromCity").html(citiesHtml);
+    // $("#toCity").html(citiesHtml);
+    $(elemetSelector).html(citiesHtml);
 }
 
 function runMulticost() {
     $.ajax({
         type: "POST",
         url: "/run",
-        // data: JSON.stringify(data),
+        data: JSON.stringify(selectedPlan),
         contentType: "application/json; charset=utf-8",
         success: function (data) {
             console.log("Success", data);
@@ -558,11 +568,11 @@ function runMulticost() {
 function savePlan() {
     let inputPlanName = $("#planName").val();
 
-    if(inputPlanName !== null && inputPlanName !== ""){
-       plan = {
-           name: inputPlanName,
-           roads: []
-       };
+    if (inputPlanName !== null && inputPlanName !== "") {
+        plan = {
+            name: inputPlanName,
+            roads: []
+        };
         $.ajax({
             type: "POST",
             url: "/save-plan",
@@ -576,7 +586,7 @@ function savePlan() {
                 console.log("Error", data);
             }
         });
-    }else{
+    } else {
         $.notify({
             message: "There is no name for the plan"
         }, notifySettings('danger'));
@@ -592,7 +602,7 @@ function showPlans() {
             console.log("Success", data);
             plans = data;
             for (let i = 0; i < data.length; i++) {
-                $('#plan-name').append($('<option>', {value:data[i].planName, text:data[i].planName}));
+                $('#plan-name').append($('<option>', {value: data[i].planName, text: data[i].planName}));
             }
         },
         error: function (data) {
@@ -601,25 +611,39 @@ function showPlans() {
     });
 }
 
-function selectedPlan() {
+function onPlanChange() {
     //TODO check if the selected plan is the same because it adds same stuff
     //TODO clear the old things when other plan is selected
     //TODO handle the case when "new plan" is selected
-    let selectedPlan = plans.filter(x => x.planName === $(this).val())[0];
-    let cities = [];
-    for (let i = 0; i < selectedPlan.roads.length; i++) {
-        if(cities.filter(x => x.cityName === selectedPlan.roads[i].toCity.cityName).length === 0){
-            cities.push(selectedPlan.roads[i].toCity);
-            addCity(selectedPlan.roads[i].toCity)
+    if (selectedPlan !== $(this).val()) {
+        $('#showCities').empty();
+        $('#showRoads').empty();
+        if ($(this).val() === 'new') {
+            $("#verticesEdges").hide();
+            $(".plan-input").show();
+            return
         }
 
-        if(cities.filter(x => x.cityName === selectedPlan.roads[i].fromCity.cityName).length === 0){
-            cities.push(selectedPlan.roads[i].fromCity);
-            addCity(selectedPlan.roads[i].fromCity)
-        }
+        selectedPlan = plans.filter(x => x.planName === $(this).val())[0];
+        let cities = [];
+        for (let i = 0; i < selectedPlan.roads.length; i++) {
+            if (cities.filter(x => x.cityName === selectedPlan.roads[i].toCity.cityName).length === 0) {
+                cities.push(selectedPlan.roads[i].toCity);
+                addCity(selectedPlan.roads[i].toCity)
+            }
 
-        addRoad(selectedPlan.roads[i])
+            if (cities.filter(x => x.cityName === selectedPlan.roads[i].fromCity.cityName).length === 0) {
+                cities.push(selectedPlan.roads[i].fromCity);
+                addCity(selectedPlan.roads[i].fromCity)
+            }
+
+            addRoad(selectedPlan.roads[i])
+        }
+        $("#verticesEdges").show();
+        $(".plan-input").hide();
+    } else {
+        $.notify({
+            message: "Same plan selected"
+        }, notifySettings('info'));
     }
-    $("#verticesEdges").show();
-    $(".plan-input").hide();
 }
