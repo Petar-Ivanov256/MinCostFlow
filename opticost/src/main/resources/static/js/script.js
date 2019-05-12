@@ -13,6 +13,7 @@ var nodeColor = '#008cc2';
 init();
 
 function init() {
+    $("#verticesEdges").hide();
     $("#sigma-container").css("height", $(document).height() * 0.9);
     $("#addCityBtn").on('click', addCity);
     $("#saveCities").on('click', saveCities);
@@ -23,7 +24,6 @@ function init() {
     $("#toCity").on('click', noCitiesDropDown);
     $("#runMulticost").on('click', runMulticost);
     $("#savePlanName").on('click', savePlan);
-    $("#verticesEdges").hide();
     showPlans();
     $('#plan-name').change(selectedPlan);
 
@@ -146,6 +146,7 @@ function editCityRow() {
 function editRoadRow() {
     let element = $(this).parent().parent();
     let index = element.get(0).id.split("-")[1];
+    //TODO make the city names to be dropdowns
     element.children().eq(0).html("<input type='text' id='fromCity-" + index + "' class='form-control' value='" + addedRoads[index].fromCity + "'>");
     element.children().eq(1).html("<input type='text' id='toCity-" + index + "' class='form-control' value='" + addedRoads[index].toCity + "'>");
     element.children().eq(2).html("<input type='number' id='capacity-" + index + "' class='form-control' value='" + addedRoads[index].capacity + "'>");
@@ -280,8 +281,8 @@ function addRoad(roadData) {
         cap = $("#inputCap").val();
         price = $("#inputPrice").val();
     }else{
-        fromCity = roadData.fromCity;
-        toCity = roadData.toCity;
+        fromCity = roadData.fromCity.cityName;
+        toCity = roadData.toCity.cityName;
         cap = roadData.capacity;
         price = roadData.price;
     }
@@ -601,8 +602,24 @@ function showPlans() {
 }
 
 function selectedPlan() {
+    //TODO check if the selected plan is the same because it adds same stuff
+    //TODO clear the old things when other plan is selected
+    //TODO handle the case when "new plan" is selected
     let selectedPlan = plans.filter(x => x.planName === $(this).val())[0];
-    addCity(selectedPlan);
+    let cities = [];
+    for (let i = 0; i < selectedPlan.roads.length; i++) {
+        if(cities.filter(x => x.cityName === selectedPlan.roads[i].toCity.cityName).length === 0){
+            cities.push(selectedPlan.roads[i].toCity);
+            addCity(selectedPlan.roads[i].toCity)
+        }
+
+        if(cities.filter(x => x.cityName === selectedPlan.roads[i].fromCity.cityName).length === 0){
+            cities.push(selectedPlan.roads[i].fromCity);
+            addCity(selectedPlan.roads[i].fromCity)
+        }
+
+        addRoad(selectedPlan.roads[i])
+    }
     $("#verticesEdges").show();
-    console.log(selectedPlan)
+    $(".plan-input").hide();
 }
