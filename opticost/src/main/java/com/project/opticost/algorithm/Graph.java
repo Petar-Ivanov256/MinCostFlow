@@ -2,6 +2,7 @@ package com.project.opticost.algorithm;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 public class Graph {
@@ -159,15 +160,16 @@ public class Graph {
 
         for (int i = 0; i < this.listOfVertices.size() - 1; i++) {
             for (Edge e : this.listOfEdges) {
-                if (e.getTo().getDistance() > e.getFrom().getDistance() + e.getPrice()) {
-                    e.getTo().setDistance(e.getFrom().getDistance() + e.getPrice());
+                // TOTO check if it is ok to make the bigdecimal a double here
+                if (e.getTo().getDistance() > e.getFrom().getDistance() +  e.getPrice().doubleValue()) {
+                    e.getTo().setDistance(e.getFrom().getDistance() + e.getPrice().doubleValue());
                     e.getTo().getParents().add(e.getFrom());
                 }
             }
         }
 
         for (Edge e : this.listOfEdges) {
-            if (e.getTo().getDistance() > e.getFrom().getDistance() + e.getPrice()) {
+            if (e.getTo().getDistance() > e.getFrom().getDistance() + e.getPrice().doubleValue()) {
                 return e.getTo();
             }
         }
@@ -231,8 +233,8 @@ public class Graph {
         Vertex source = new Vertex("s");
         Vertex dest = new Vertex("t");
 
-        this.addEdge(new Edge(source, start, cargo, 0));
-        this.addEdge(new Edge(end, dest, cargo, 0));
+        this.addEdge(new Edge(source, start, cargo, BigDecimal.valueOf(0)));
+        this.addEdge(new Edge(end, dest, cargo, BigDecimal.valueOf(0)));
         //TODO make the flow to be int
         int maxFlow = (int) this.maxFlow(source, dest);
 
@@ -286,8 +288,9 @@ public class Graph {
         priceGraph = new double[adjMatrixSize][adjMatrixSize];
 
         for (Edge e : this.listOfEdges) {
-            priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()] = e.getPrice();
-            priceGraph[e.getTo().getSeq()][e.getFrom().getSeq()] = -e.getPrice();
+            //TODO check if you can use double Value for the bigdecimal
+            priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()] = e.getPrice().doubleValue();
+            priceGraph[e.getTo().getSeq()][e.getFrom().getSeq()] = -e.getPrice().doubleValue();
         }
     }
 

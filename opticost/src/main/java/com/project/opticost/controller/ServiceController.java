@@ -9,6 +9,7 @@ import com.project.opticost.db.model.Road;
 import com.project.opticost.db.services.CityService;
 import com.project.opticost.db.services.PlanService;
 import com.project.opticost.db.services.RoadService;
+import com.project.opticost.utils.requests.helpers.MultiCostRequestEntity;
 import com.project.opticost.utils.requests.helpers.PlanRequstEntity;
 import com.project.opticost.utils.requests.helpers.RoadRequestEntity;
 import org.apache.commons.io.IOUtils;
@@ -63,7 +64,7 @@ public class ServiceController {
         Plan planEntity = new Plan();
         Plan dbPlan = planService.findByPlanName(plan.getName());
 
-        if(dbPlan != null){
+        if (dbPlan != null) {
             planEntity.setId(dbPlan.getId());
         }
 
@@ -91,7 +92,7 @@ public class ServiceController {
             City fromCity = cityService.createCityFromName(fromCityName);
             City toCity = cityService.createCityFromName(toCityName);
 
-            Road edge =  new Road();
+            Road edge = new Road();
             edge.setFromCity(fromCity);
             edge.setToCity(toCity);
             edge.setPrice(price);
@@ -132,12 +133,22 @@ public class ServiceController {
     }
 
     @RequestMapping(value = "/run", method = RequestMethod.POST)
-    public void runMinCostFlow(@RequestParam String planName) throws Exception {
+    public void runMinCostFlow(@RequestBody MultiCostRequestEntity run) throws Exception {
         Graph graph = new Graph();
-        Plan plan = planService.findByPlanName(planName);
+        Plan plan = planService.findByPlanName(run.getSelectedPlan());
+        Vertex fromCity = null;
+        Vertex toCity = null;
+
         Set<City> citySet = new HashSet<>();
 
-        if(plan != null){
+        if (plan != null) {
+            if (checkIfCityIsPresent(plan, run.getFromCity()) && checkIfCityIsPresent(plan, run.getToCity())) {
+                fromCity = new Vertex(run.getFromCity());
+                toCity = new Vertex(run.getToCity());
+            }else {
+                throw new RuntimeException("The request is corrupted used cities are not in the Plan");
+            }
+
             for (Road road : plan.getRoads()) {
                 citySet.add(road.getFromCity());
                 citySet.add(road.getToCity());
@@ -164,8 +175,6 @@ public class ServiceController {
         }
 
 
-
-
 //        Vertex v0 = new Vertex("0");
 //        Vertex v1 = new Vertex("1");
 //        Vertex v2 = new Vertex("2");
@@ -177,19 +186,18 @@ public class ServiceController {
 
 //        graph.minCostFlowCostScaling(new Vertex("0"), new Vertex("2"), 4);
 
-        // TODO make the UI to accept from to and cargo
-        graph.minCostFlowCycleCancel(new Vertex("0"), new Vertex("2"), 4);
+        graph.minCostFlowCycleCancel(fromCity, toCity, run.getCargo());
         graph.printGraphMinCostFlow();
     }
 
-    private List<Road> extractRoads(List<RoadRequestEntity> roads){
+    private List<Road> extractRoads(List<RoadRequestEntity> roads) {
         List<Road> results = new ArrayList<>();
         for (RoadRequestEntity road : roads) {
             City fromCity = cityService.findByCityName(road.getFromCity());
             City toCity = cityService.findByCityName(road.getToCity());
             Plan plan = planService.findByPlanName(road.getPlanName());
 
-            if(fromCity != null && toCity != null){
+            if (fromCity != null && toCity != null) {
                 Road roadEntity = new Road();
                 roadEntity.setFromCity(fromCity);
                 roadEntity.setToCity(toCity);
@@ -202,5 +210,10 @@ public class ServiceController {
         }
 
         return results;
+    }
+
+    private boolean checkIfCityIsPresent(Plan plan, String cityName) {
+        return plan.getRoads().stream().anyMatch(x -> x.getToCity().getCityName().equals(cityName)) ||
+                plan.getRoads().stream().anyMatch(x -> x.getFromCity().getCityName().equals(cityName));
     }
 }

@@ -118,6 +118,8 @@ function editCityRow() {
 
             updateCitiesDropDown("#fromCity");
             updateCitiesDropDown("#toCity");
+            updateCitiesDropDown("#fromCityRun");
+            updateCitiesDropDown("#toCityRun");
             // Unbind the events before removing the element in order to avoid replication of event listeners
             $(".editCity").off();
             element.empty();
@@ -175,6 +177,9 @@ function editRoadRow() {
         addedRoads[index].capacity = cap;
         addedRoads[index].price = price;
 
+        updateCitiesDropDown("#fromCityRun");
+        updateCitiesDropDown("#toCityRun");
+
         // Unbind the events before removing the element in order to avoid replication of event listeners
         $(".editRoad").off();
         element.empty();
@@ -196,6 +201,8 @@ function removeCityRow() {
     $(".removeCity").on('click', removeCityRow);
     updateCitiesDropDown("#fromCity");
     updateCitiesDropDown("#toCity");
+    updateCitiesDropDown("#fromCityRun");
+    updateCitiesDropDown("#toCityRun");
 }
 
 function removeRoadRow() {
@@ -248,6 +255,8 @@ function addCity(cityData) {
         addedCities.push(value);
         updateCitiesDropDown("#fromCity");
         updateCitiesDropDown("#toCity");
+        updateCitiesDropDown("#fromCityRun");
+        updateCitiesDropDown("#toCityRun");
     } else {
         $.notify({
             // options
@@ -551,18 +560,38 @@ function updateCitiesDropDown(elemetSelector) {
 }
 
 function runMulticost() {
-    $.ajax({
-        type: "POST",
-        url: "/run",
-        data: JSON.stringify(selectedPlan),
-        contentType: "application/json; charset=utf-8",
-        success: function (data) {
-            console.log("Success", data);
-        },
-        error: function (data) {
-            console.log("Error", data);
-        }
-    });
+    let fromCity = $("#fromCityRun").val();
+    let toCity = $("#toCityRun").val();
+    let cargo = $("#cargo").val();
+
+    if(fromCity === null ||
+        toCity === null ||
+        cargo === ""){
+        $.notify({
+            message: "Please fill all fields in order to run the algorithm"
+        }, notifySettings('danger'));
+    }else{
+
+        let data = {
+            selectedPlan: selectedPlan,
+            fromCity: fromCity,
+            toCity: toCity,
+            cargo: cargo
+        };
+
+        $.ajax({
+            type: "POST",
+            url: "/run",
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                console.log("Success", data);
+            },
+            error: function (data) {
+                console.log("Error", data);
+            }
+        });
+    }
 }
 
 function savePlan() {
@@ -621,8 +650,17 @@ function onPlanChange() {
         if ($(this).val() === 'new') {
             $("#verticesEdges").hide();
             $(".plan-input").show();
+            addedCities = [];
+            addedRoads = [];
+            updateCitiesDropDown("#fromCity");
+            updateCitiesDropDown("#toCity");
+            updateCitiesDropDown("#fromCityRun");
+            updateCitiesDropDown("#toCityRun");
             return
         }
+
+        let citiesToDraw = [];
+        let roadsToDraw = [];
 
         selectedPlan = plans.filter(x => x.planName === $(this).val())[0];
         let cities = [];
@@ -637,8 +675,12 @@ function onPlanChange() {
                 addCity(selectedPlan.roads[i].fromCity)
             }
 
+            roadsToDraw.push(selectedPlan.roads[i]);
             addRoad(selectedPlan.roads[i])
         }
+
+        drawCities(cities);
+        drawRoads(roadsToDraw);
         $("#verticesEdges").show();
         $(".plan-input").hide();
     } else {
