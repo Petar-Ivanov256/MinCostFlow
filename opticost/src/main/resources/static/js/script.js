@@ -404,9 +404,10 @@ function drawCities(cities) {
         return {id: x.id, label: x.cityName, x: x.xCoord, y: x.yCoord, size: nodeSize, color: nodeColor}
     });
 
+
 // Create a graph object
     graph['nodes'] = nodes;
-
+    s.graph.clear();
 // Load the graph in sigma
     s.graph.read(graph);
 // Ask sigma to draw it
@@ -645,6 +646,7 @@ function onPlanChange() {
     //TODO clear the old things when other plan is selected
     //TODO handle the case when "new plan" is selected
     if (selectedPlan !== $(this).val()) {
+        s.graph.clear();
         $('#showCities').empty();
         $('#showRoads').empty();
         if ($(this).val() === 'new') {

@@ -2,6 +2,7 @@ package com.project.opticost.controller;
 
 import com.project.opticost.algorithm.Edge;
 import com.project.opticost.algorithm.Graph;
+import com.project.opticost.algorithm.ResultEdge;
 import com.project.opticost.algorithm.Vertex;
 import com.project.opticost.db.model.City;
 import com.project.opticost.db.model.Plan;
@@ -9,6 +10,7 @@ import com.project.opticost.db.model.Road;
 import com.project.opticost.db.services.CityService;
 import com.project.opticost.db.services.PlanService;
 import com.project.opticost.db.services.RoadService;
+import com.project.opticost.utils.requests.helpers.MinCostResultRequestEntity;
 import com.project.opticost.utils.requests.helpers.MultiCostRequestEntity;
 import com.project.opticost.utils.requests.helpers.PlanRequstEntity;
 import com.project.opticost.utils.requests.helpers.RoadRequestEntity;
@@ -133,7 +135,7 @@ public class ServiceController {
     }
 
     @RequestMapping(value = "/run", method = RequestMethod.POST)
-    public void runMinCostFlow(@RequestBody MultiCostRequestEntity run) throws Exception {
+    public List<MinCostResultRequestEntity> runMinCostFlow(@RequestBody MultiCostRequestEntity run) throws Exception {
         Graph graph = new Graph();
         Plan plan = planService.findByPlanName(run.getSelectedPlan());
         Vertex fromCity = null;
@@ -188,8 +190,21 @@ public class ServiceController {
 
         graph.minCostFlowCycleCancel(fromCity, toCity, run.getCargo());
         graph.printGraphMinCostFlow();
+
+        List<ResultEdge> redges = graph.getResult();
+        List<Road> edges = roadService.findAll();
+        List<MinCostResultRequestEntity> result = new ArrayList<>();
+        for (ResultEdge redge : redges) {
+            Road road = edges.stream().filter(x -> x.getFromCity().getCityName().equals(redge.getFromCity()) &&
+                                        x.getToCity().getCityName().equals(redge.getToCity())&&
+                                        x.getPlan().getPlanName().equals(plan.getPlanName())).findFirst().get();
+            result.add(new MinCostResultRequestEntity(road, redge.getPrice(), redge.getFlow()));
+        }
+
+        return result;
     }
 
+    // TODO put this in the roads service
     private List<Road> extractRoads(List<RoadRequestEntity> roads) {
         List<Road> results = new ArrayList<>();
         for (RoadRequestEntity road : roads) {
@@ -212,6 +227,7 @@ public class ServiceController {
         return results;
     }
 
+    //TODO put this in some service
     private boolean checkIfCityIsPresent(Plan plan, String cityName) {
         return plan.getRoads().stream().anyMatch(x -> x.getToCity().getCityName().equals(cityName)) ||
                 plan.getRoads().stream().anyMatch(x -> x.getFromCity().getCityName().equals(cityName));

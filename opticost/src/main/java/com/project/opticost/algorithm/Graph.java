@@ -16,6 +16,7 @@ public class Graph {
     private double[][] residualGraph;
     private double[][] priceGraph;
     private double epsilon;
+    private double minCostFlow;
 
     public Graph() {
 
@@ -24,6 +25,10 @@ public class Graph {
         this.adjacencyList = new HashMap<>();
         // TODO make method to take care of the size of the matrix
         this.adjacencyMatrix = new double[adjMatrixSize][adjMatrixSize];
+    }
+
+    public double getMinCostFlow() {
+        return minCostFlow;
     }
 
     public void addEdge(Edge newEdge) {
@@ -369,6 +374,23 @@ public class Graph {
                     this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()]);
         }
         System.out.println("The min const flow is: " + minCostFlow);
+    }
+
+    public List<ResultEdge> getResult(){
+        double minCostFlow = 0;
+        List<ResultEdge> result = new ArrayList<>();
+        for (Edge e : this.listOfEdges) {
+            minCostFlow += this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] *
+                    this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()];
+            BigDecimal price = BigDecimal.valueOf(this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] *
+                    this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()]);
+            double flow = this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()];
+
+            result.add(new ResultEdge(e.getFrom().getName(), e.getTo().getName(), price, flow));
+        }
+
+        this.minCostFlow = minCostFlow;
+        return result;
     }
 
     public void printGraphMaxFlow() {
