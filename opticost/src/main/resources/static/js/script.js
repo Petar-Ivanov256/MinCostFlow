@@ -2,7 +2,7 @@ var addedCities = [];
 var addedRoads = [];
 var plan = {};
 var plans = [];
-var selectedPlan = null;
+var selectedPlan = {};
 var s = null;
 var graph = {};
 var cityCnt = 0;
@@ -565,16 +565,16 @@ function runMulticost() {
     let toCity = $("#toCityRun").val();
     let cargo = $("#cargo").val();
 
-    if(fromCity === null ||
+    if (fromCity === null ||
         toCity === null ||
-        cargo === ""){
+        cargo === "") {
         $.notify({
             message: "Please fill all fields in order to run the algorithm"
         }, notifySettings('danger'));
-    }else{
+    } else {
 
         let data = {
-            selectedPlan: selectedPlan,
+            selectedPlan: selectedPlan.planName,
             fromCity: fromCity,
             toCity: toCity,
             cargo: cargo
@@ -611,6 +611,7 @@ function savePlan() {
             success: function (data) {
                 console.log("Success", data);
                 $("#verticesEdges").show();
+                selectedPlan = {planName: inputPlanName, roads: []}
             },
             error: function (data) {
                 console.log("Error", data);
@@ -645,7 +646,7 @@ function onPlanChange() {
     //TODO check if the selected plan is the same because it adds same stuff
     //TODO clear the old things when other plan is selected
     //TODO handle the case when "new plan" is selected
-    if (selectedPlan !== $(this).val()) {
+    if (selectedPlan.planName !== $(this).val()) {
         s.graph.clear();
         $('#showCities').empty();
         $('#showRoads').empty();
