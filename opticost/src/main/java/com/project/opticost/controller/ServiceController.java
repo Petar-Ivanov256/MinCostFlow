@@ -176,7 +176,6 @@ public class ServiceController {
             }
         }
 
-
 //        Vertex v0 = new Vertex("0");
 //        Vertex v1 = new Vertex("1");
 //        Vertex v2 = new Vertex("2");

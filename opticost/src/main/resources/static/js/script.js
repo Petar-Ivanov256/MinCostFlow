@@ -38,12 +38,14 @@ function init() {
             settings: {
                 minEdgeSize: 0.1,
                 maxEdgeSize: 2,
-                minNodeSize: 1,
-                maxNodeSize: 8,
+                minNodeSize: 10,
+                maxNodeSize: 20,
                 maxArrowSize: 20,
                 minArrowSize: 10,
                 edgeLabelSize: 'proportional',
-                sideMargin: 0.1
+                defaultEdgeLabelSize: 15,
+                sideMargin: 0.1,
+                // autoRescale: false
             }
         }
     );
@@ -442,22 +444,30 @@ function drawRoads(roads) {
     console.log("Drawing Edges")
 }
 
-function drawRoadsAndCities(data) {
+function drawRoadsAndCities(data, isResult) {
     // let nodes = cities.map(function (x) {
     //     return {id: x.id, label: x.cityName, x: x.xCoord, y: x.yCoord, size: nodeSize, color: nodeColor}
     // });
 
     let nodes = [];
     for (const x of data) {
-        let fromCity = x.fromCity;
-        let toCity = x.toCity;
+        let fromCity = null;
+        let toCity = null;
+        if (isResult) {
+            fromCity = x.edge.fromCity;
+            toCity = x.edge.toCity;
+        } else {
+            fromCity = x.fromCity;
+            toCity = x.toCity;
+        }
+
 
         if (nodes.filter(x => x.id === fromCity.id).length === 0) {
             nodes.push({
-                id: x.fromCity.id,
-                label: x.fromCity.cityName,
-                x: x.fromCity.xCoord,
-                y: x.fromCity.yCoord,
+                id: fromCity.id,
+                label: fromCity.cityName,
+                x: fromCity.xCoord,
+                y: fromCity.yCoord,
                 size: nodeSize,
                 color: nodeColor
             });
@@ -465,10 +475,10 @@ function drawRoadsAndCities(data) {
 
         if (nodes.filter(x => x.id === toCity.id).length === 0) {
             nodes.push({
-                id: x.toCity.id,
-                label: x.toCity.cityName,
-                x: x.toCity.xCoord,
-                y: x.toCity.yCoord,
+                id: toCity.id,
+                label: toCity.cityName,
+                x: toCity.xCoord,
+                y: toCity.yCoord,
                 size: nodeSize,
                 color: nodeColor
             });
@@ -477,7 +487,26 @@ function drawRoadsAndCities(data) {
     }
 
     let edges = data.map(function (x) {
-        return {id: x.id, source: x.fromCity.id, target: x.toCity.id, color: '#282c34', type: 'curvedArrow', size: 0.5}
+        if (isResult) {
+            return {
+                id: x.edge.id,
+                source: x.edge.fromCity.id,
+                target: x.edge.toCity.id,
+                color: '#282c34',
+                type: 'curvedArrow',
+                size: 0.5,
+                label: x.flow + " flow/ " + x.price + " price"
+            }
+        } else {
+            return {
+                id: x.id,
+                source: x.fromCity.id,
+                target: x.toCity.id,
+                color: '#282c34',
+                type: 'curvedArrow',
+                size: 0.5
+            }
+        }
     });
 
 // Create a graph object
@@ -517,7 +546,7 @@ function processFile() {
             processData: false,
             contentType: false,
             success: function (data) {
-                drawRoadsAndCities(data)
+                drawRoadsAndCities(data, false)
                 $.notify({
                     message: "Input processed successfully."
                 }, notifySettings('success'));
@@ -587,6 +616,7 @@ function runMulticost() {
             contentType: "application/json; charset=utf-8",
             success: function (data) {
                 console.log("Success", data);
+                drawRoadsAndCities(data, true)
             },
             error: function (data) {
                 console.log("Error", data);
