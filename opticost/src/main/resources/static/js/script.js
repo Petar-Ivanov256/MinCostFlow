@@ -546,7 +546,10 @@ function processFile() {
             processData: false,
             contentType: false,
             success: function (data) {
-                drawRoadsAndCities(data, false)
+                // drawRoadsAndCities(data, false)
+                selectedPlan = data;
+                plans.push(data);
+                onPlanChange(true);
                 $.notify({
                     message: "Input processed successfully."
                 }, notifySettings('success'));
@@ -672,15 +675,20 @@ function showPlans() {
     });
 }
 
-function onPlanChange() {
-    //TODO check if the selected plan is the same because it adds same stuff
-    //TODO clear the old things when other plan is selected
-    //TODO handle the case when "new plan" is selected
-    if (selectedPlan.planName !== $(this).val()) {
+function onPlanChange(fromFile) {
+    let selectedPlanName = null;
+    if(fromFile.target){
+        selectedPlanName = $('#plan-name').val();
+    }else{
+        selectedPlanName = '';
+    }
+
+    // TODO have bugs by changing the plan clear them
+    if (selectedPlan.planName !== selectedPlanName) {
         s.graph.clear();
         $('#showCities').empty();
         $('#showRoads').empty();
-        if ($(this).val() === 'new') {
+        if (selectedPlanName === 'new') {
             $("#verticesEdges").hide();
             $(".plan-input").show();
             addedCities = [];
@@ -695,7 +703,10 @@ function onPlanChange() {
         let citiesToDraw = [];
         let roadsToDraw = [];
 
-        selectedPlan = plans.filter(x => x.planName === $(this).val())[0];
+        if (selectedPlanName !== '') {
+            selectedPlan = plans.filter(x => x.planName === selectedPlanName)[0];
+        }
+
         let cities = [];
         for (let i = 0; i < selectedPlan.roads.length; i++) {
             if (cities.filter(x => x.cityName === selectedPlan.roads[i].toCity.cityName).length === 0) {

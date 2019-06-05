@@ -78,12 +78,19 @@ public class ServiceController {
 
     @ResponseBody
     @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE, value = "/process-file")
-    public Object processInputCSV(MultipartHttpServletRequest request, HttpServletResponse response) throws IOException {
+    public Plan processInputCSV(MultipartHttpServletRequest request, HttpServletResponse response) throws IOException {
         MultipartFile multipartFile = request.getFile("file");
         InputStream stream = multipartFile.getInputStream();
         String[] data = IOUtils.toString(stream, StandardCharsets.UTF_8).split("\\r?\\n");
         List<String> lines = new ArrayList<>(Arrays.asList(data));
         List<Road> result = new ArrayList<>();
+
+        Plan existingPlan = planService.findByPlanName(multipartFile.getOriginalFilename());
+        if(existingPlan != null){
+            planService.getRepo().delete(existingPlan);
+        }
+        Plan plan = new Plan();
+        plan.setPlanName(multipartFile.getOriginalFilename());
 
         for (int i = 1; i < lines.size(); i++) {
             String[] content = lines.get(i).split(",");
@@ -99,15 +106,14 @@ public class ServiceController {
             edge.setToCity(toCity);
             edge.setPrice(price);
             edge.setCapacity(capacity);
+            edge.setPlan(plan);
 
-            roadService.saveAndFlush(edge);
             result.add(edge);
         }
 
-        Plan plan = new Plan();
-        plan.setPlanName(multipartFile.getName());
         plan.setRoads(result);
-        planService.saveAndFlush(plan);
+
+
 //        Function<String, Road> mapToItem = (line) -> {
 //            String[] data = line.split(",");
 //
@@ -131,7 +137,7 @@ public class ServiceController {
 //            }
 //        });
 
-        return result;
+        return planService.saveAndFlush(plan);
     }
 
     @RequestMapping(value = "/run", method = RequestMethod.POST)
