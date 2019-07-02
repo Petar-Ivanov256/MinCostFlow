@@ -95,6 +95,7 @@ function init() {
 }
 
 function editCityRow() {
+    // TODO by editing the City name, it is not saved
     let element = $(this).parent().parent();
     let index = element.get(0).id.split("-")[1];
     element.children().eq(0).html("<input type='text' id='cityName-" + index + "' class='form-control' value='" + addedCities[index].cityName + "'>");
@@ -154,10 +155,10 @@ function editRoadRow() {
     let index = element.get(0).id.split("-")[1];
     //TODO make the city names to be dropdowns
     // element.children().eq(0).html("<input type='text' id='fromCity-" + index + "' class='form-control' value='" + addedRoads[index].fromCity + "'>");
-    element.children().eq(0).html("<select class='form-control' id='fromCity-'" + index + "></select>");
+    element.children().eq(0).html("<select class='form-control' id='fromCity-" + index + "'></select>");
     updateCitiesDropDown("#fromCity-" + index);
     // element.children().eq(1).html("<input type='text' id='toCity-" + index + "' class='form-control' value='" + addedRoads[index].toCity + "'>");
-    element.children().eq(0).html("<select class='form-control' id='toCity-'" + index + "></select>");
+    element.children().eq(1).html("<select class='form-control' id='toCity-" + index + "'></select>");
     updateCitiesDropDown("#toCity-" + index);
 
     element.children().eq(2).html("<input type='number' id='capacity-" + index + "' class='form-control' value='" + addedRoads[index].capacity + "'>");
