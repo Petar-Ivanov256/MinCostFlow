@@ -153,7 +153,6 @@ function editCityRow() {
 function editRoadRow() {
     let element = $(this).parent().parent();
     let index = element.get(0).id.split("-")[1];
-    //TODO make the city names to be dropdowns
     // element.children().eq(0).html("<input type='text' id='fromCity-" + index + "' class='form-control' value='" + addedRoads[index].fromCity + "'>");
     element.children().eq(0).html("<select class='form-control' id='fromCity-" + index + "'></select>");
     updateCitiesDropDown("#fromCity-" + index);
@@ -410,6 +409,11 @@ function drawCities(cities) {
 
 // Create a graph object
     graph['nodes'] = nodes;
+    if('edges' in graph){
+        delete graph['edges']
+        // TODO clear edges table because it is wrong any more
+    }
+
     s.graph.clear();
 // Load the graph in sigma
     s.graph.read(graph);
@@ -425,11 +429,11 @@ function drawRoads(roads) {
     });
 
 // Create a graph object
+    s.graph.clear();
     graph['edges'] = edges;
 
 // Load the graph in sigma
     //this gets rid of all the ndoes and edges
-    s.graph.clear();
     //this gets rid of any methods you've attached to s.
     // s.graph.kill();
 
