@@ -1,7 +1,5 @@
 package com.project.opticost.algorithm;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -409,7 +407,8 @@ public class Graph {
     // TODO implement the method
     private void updatadjMatrixSize() {
         // Probably you need to rebuild Seq of vertex
-        throw new NotImplementedException();
+//        throw new NotImplementedException();
+        System.out.println("Not implemented");
     }
 
     //TODO: What happens if the goal destination has an outgoing arc

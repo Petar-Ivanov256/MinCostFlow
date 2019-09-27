@@ -1,6 +1,7 @@
 var addedCities = [];
 var addedRoads = [];
-var plan = {};
+// Probably obsolete
+// var plan = {};
 var plans = [];
 var selectedPlan = {};
 var s = null;
@@ -324,7 +325,7 @@ function addRoad(roadData) {
             'capacity': cap,
             'price': price,
             'deleted': false,
-            'planName': plan.name
+            'planName': selectedPlan.planName
         }
     );
 }
@@ -379,6 +380,7 @@ function saveCities() {
 function saveRoads() {
     console.log(addedRoads);
     let data = addedRoads.filter(x => x.deleted === false);
+    console.log(data)
     $.ajax({
         type: "POST",
         url: "/save-roads",
