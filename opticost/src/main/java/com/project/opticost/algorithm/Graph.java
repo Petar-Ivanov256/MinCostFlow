@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 public class Graph {
-    private final int adjMatrixSize = 20;
+    private final int adjMatrixSize = 5;
 
     private List<Edge> listOfEdges;
     private List<Vertex> listOfVertices;
@@ -180,11 +180,11 @@ public class Graph {
         return null;
     }
 
-    public Vertex findNegativeCycleInResidualGraph(Vertex from) {
+    public Vertex  findNegativeCycleInResidualGraph(Vertex from) {
         Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
-        double[] parent = new double[adjMatrixSize];
-
-        parent[start.getSeq()] = -1;
+//        double[] parent = new double[adjMatrixSize];
+//
+//        parent[start.getSeq()] = -1;
         for (Vertex v : this.listOfVertices) {
             v.setDistance(Integer.MAX_VALUE);
             v.setParents(new ArrayList<>());
@@ -204,7 +204,7 @@ public class Graph {
                             vVertex.setDistance(uVertex.getDistance() + this.priceGraph[u][v]);
                             vVertex.getParents().add(uVertex);
                             vVertex.setParent(uVertex);
-                            parent[vVertex.getSeq()] = uVertex.getSeq();
+//                            parent[vVertex.getSeq()] = uVertex.getSeq();
                         }
                     }
                 }

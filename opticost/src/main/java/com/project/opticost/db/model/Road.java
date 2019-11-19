@@ -6,7 +6,7 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name="roads")
+@Table(name = "roads")
 public class Road {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -31,7 +31,8 @@ public class Road {
     @JsonIgnore
     private Plan plan;
 
-    public Road() {}
+    public Road() {
+    }
 
     public Long getId() {
         return id;
@@ -79,5 +80,14 @@ public class Road {
 
     public void setPlan(Plan plan) {
         this.plan = plan;
+    }
+
+    @Override
+    public String toString() {
+        return "Road{" +
+                fromCity.getCityName() +
+                "->" +
+                toCity.getCityName() +
+                '}';
     }
 }

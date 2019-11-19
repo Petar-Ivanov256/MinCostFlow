@@ -169,7 +169,8 @@ public class Vertex {
     @Override
     public String toString() {
         return "Vertex{" +
-                "name='" + name + '\'' +
+                "name='" + name + "\' " +
+                "seq=" + seq +
                 '}';
     }
 }
