@@ -104,7 +104,7 @@ function editCityRow() {
     element.children().eq(2).html("<input type='number' id='yCoord-" + index + "' class='form-control' value='" + addedCities[index].yCoord + "'>");
     element.children().eq(3).html(
         "<button type='button' id='saveCity-" + index + "' class='btn btn-success btn-sm'>" +
-        "<span class='glyphicon glyphicon-floppy-saved'></span> Save" +
+        "<span class='glyphicon glyphicon-floppy-saved'></span>" +
         "</button>"
     );
 
@@ -165,7 +165,7 @@ function editRoadRow() {
     element.children().eq(3).html("<input type='number' id='price-" + index + "' class='form-control' value='" + addedRoads[index].price + "'>");
     element.children().eq(4).html(
         "<button type='button' id='saveRoad-" + index + "' class='btn btn-success btn-sm'>" +
-        "<span class='glyphicon glyphicon-floppy-saved'></span> Save" +
+        "<span class='glyphicon glyphicon-floppy-saved'></span>" +
         "</button>"
     );
 
@@ -280,10 +280,10 @@ function drawCityRow(cityName, xCoord, yCoord) {
         "</td>" +
         "<td class='col-md-3'>" +
         "<button type='button' class='btn btn-info btn-sm editCity'>" +
-        "<span class='glyphicon glyphicon-edit'></span> Edit" +
+        "<span class='glyphicon glyphicon-edit'></span>" +
         "</button>" +
         "<button type='button' class='btn btn-danger btn-sm removeCity'>" +
-        "<span class='glyphicon glyphicon-removeg'></span> Remove" +
+        "<span class='glyphicon glyphicon-remove'></span>" +
         "</button>" +
         "</td>";
 }
@@ -345,10 +345,10 @@ function drawRoadRow(fromCity, toCity, cap, price) {
         "</td>" +
         "<td class='col-md-3'>" +
         "<button type='button' class='btn btn-info btn-sm editRoad'>" +
-        "<span class='glyphicon glyphicon-edit'></span> Edit" +
+        "<span class='glyphicon glyphicon-edit'></span>" +
         "</button>" +
         "<button type='button' class='btn btn-danger btn-sm removeRoad'>" +
-        "<span class='glyphicon glyphicon-removeg'></span> Remove" +
+        "<span class='glyphicon glyphicon-remove'></span>" +
         "</button>" +
         "</td>";
 }
@@ -695,6 +695,8 @@ function onPlanChange(fromFile) {
         s.graph.clear();
         $('#showCities').empty();
         $('#showRoads').empty();
+        addedRoads = [];
+        addedCities = [];
         if (selectedPlanName === 'new') {
             $("#verticesEdges").hide();
             $(".plan-input").show();
@@ -707,14 +709,14 @@ function onPlanChange(fromFile) {
             return
         }
 
-        let citiesToDraw = [];
+        let cities = [];
         let roadsToDraw = [];
 
         if (selectedPlanName !== '') {
             selectedPlan = plans.filter(x => x.planName === selectedPlanName)[0];
         }
 
-        let cities = [];
+
         for (let i = 0; i < selectedPlan.roads.length; i++) {
             if (cities.filter(x => x.cityName === selectedPlan.roads[i].toCity.cityName).length === 0) {
                 cities.push(selectedPlan.roads[i].toCity);
