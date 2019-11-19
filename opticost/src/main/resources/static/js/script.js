@@ -337,13 +337,13 @@ function drawRoadRow(fromCity, toCity, cap, price) {
         "<td class='col-md-3'>" +
         toCity +
         "</td>" +
-        "<td class='col-md-3'>" +
+        "<td class='col-md-2'>" +
         cap +
         "</td>" +
-        "<td class='col-md-3'>" +
+        "<td class='col-md-2'>" +
         price +
         "</td>" +
-        "<td class='col-md-3'>" +
+        "<td class='col-md-6'>" +
         "<button type='button' class='btn btn-info btn-sm editRoad'>" +
         "<span class='glyphicon glyphicon-edit'></span>" +
         "</button>" +
