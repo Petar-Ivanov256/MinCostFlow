@@ -12,6 +12,31 @@ var roadCnt = 0;
 var nodeSize = 3;
 var nodeColor = '#008cc2';
 
+function checkWidth(init) {
+
+    if ($(window).width() < 1650) {
+        $('#form-container').removeClass('col-md-4');
+        $('#form-container').addClass('col-md-12');
+        $('#draw-container').removeClass('col-md-8');
+        $('#draw-container').addClass('col-md-12');
+    } else {
+        // if (!init) {
+            $('#form-container').removeClass('col-md-12');
+            $('#form-container').addClass('col-md-4');
+            $('#draw-container').removeClass('col-md-12');
+            $('#draw-container').addClass('col-md-8');
+        // }
+    }
+}
+
+$(document).ready(function() {
+    checkWidth(true);
+
+    $(window).resize(function() {
+        checkWidth(false);
+    });
+});
+
 init();
 
 function init() {
