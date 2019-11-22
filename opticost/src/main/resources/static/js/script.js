@@ -14,7 +14,7 @@ var nodeColor = '#008cc2';
 
 function checkWidth(init) {
 
-    if ($(window).width() < 1650) {
+    if ($(window).width() < 1150) {
         $('#form-container').removeClass('col-md-4');
         $('#form-container').addClass('col-md-12');
         $('#draw-container').removeClass('col-md-8');
@@ -135,8 +135,8 @@ function editCityRow() {
 
     $("#saveCity-" + index).on('click', function () {
         let cityName = $("#cityName-" + index).val();
-        let xCoord = $("#xCoord-" + index).val();
-        let yCoord = $("#yCoord-" + index).val();
+        let xCoord = parseInt($("#xCoord-" + index).val(), 10);
+        let yCoord = parseInt($("#yCoord-" + index).val(), 10);
 
         if (addedCities.filter(x => x.cityName === cityName).length === 0 ||
             addedCities.filter(x => x.xCoord === xCoord && x.yCoord === yCoord && x.deleted === false).length === 0) {
@@ -722,6 +722,8 @@ function onPlanChange(fromFile) {
         $('#showRoads').empty();
         addedRoads = [];
         addedCities = [];
+        cityCnt = 0;
+        roadCnt = 0;
         if (selectedPlanName === 'new') {
             $("#verticesEdges").hide();
             $(".plan-input").show();
