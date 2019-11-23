@@ -53,7 +53,7 @@ public class ServiceController {
 
     @RequestMapping(value = "/save-roads", method = RequestMethod.POST)
     public List<Road> saveRoads(@RequestBody List<RoadRequestEntity> roads) {
-        return roadService.saveAll(extractRoads(roads));
+        return roadService.saveOrUpdateRoads(extractRoads(roads));
     }
 
     @RequestMapping(value = "/plans", method = RequestMethod.GET)
