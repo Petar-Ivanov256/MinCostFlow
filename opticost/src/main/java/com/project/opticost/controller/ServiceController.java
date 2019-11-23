@@ -10,6 +10,7 @@ import com.project.opticost.db.model.Road;
 import com.project.opticost.db.services.CityService;
 import com.project.opticost.db.services.PlanService;
 import com.project.opticost.db.services.RoadService;
+import com.project.opticost.utils.exceptions.RoadsWithNotMatchingPlanException;
 import com.project.opticost.utils.requests.helpers.MinCostResultRequestEntity;
 import com.project.opticost.utils.requests.helpers.MultiCostRequestEntity;
 import com.project.opticost.utils.requests.helpers.PlanRequstEntity;
@@ -52,8 +53,8 @@ public class ServiceController {
     }
 
     @RequestMapping(value = "/save-roads", method = RequestMethod.POST)
-    public List<Road> saveRoads(@RequestBody List<RoadRequestEntity> roads) {
-        return roadService.saveOrUpdateRoads(extractRoads(roads));
+    public List<Road> saveRoads(@RequestBody List<RoadRequestEntity> roads) throws RoadsWithNotMatchingPlanException {
+        return roadService.persistRoads(roads);
     }
 
     @RequestMapping(value = "/plans", method = RequestMethod.GET)
@@ -71,7 +72,7 @@ public class ServiceController {
         }
 
         planEntity.setPlanName(plan.getName());
-        planEntity.setRoads(extractRoads(plan.getRoads()));
+        planEntity.setRoads(roadService.extractRoads(plan.getRoads()));
 
         return planService.saveAndFlush(planEntity);
     }
@@ -207,29 +208,6 @@ public class ServiceController {
         }
 
         return result;
-    }
-
-    // TODO put this in the roads service
-    private List<Road> extractRoads(List<RoadRequestEntity> roads) {
-        List<Road> results = new ArrayList<>();
-        for (RoadRequestEntity road : roads) {
-            City fromCity = cityService.findByCityName(road.getFromCity());
-            City toCity = cityService.findByCityName(road.getToCity());
-            Plan plan = planService.findByPlanName(road.getPlanName());
-
-            if (fromCity != null && toCity != null) {
-                Road roadEntity = new Road();
-                roadEntity.setFromCity(fromCity);
-                roadEntity.setToCity(toCity);
-                roadEntity.setCapacity(road.getCapacity());
-                roadEntity.setPrice(road.getPrice());
-                roadEntity.setPlan(plan);
-
-                results.add(roadEntity);
-            }
-        }
-
-        return results;
     }
 
     //TODO put this in some service
