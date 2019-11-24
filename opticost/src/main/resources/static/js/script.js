@@ -179,12 +179,14 @@ function editCityRow() {
 function editRoadRow() {
     let element = $(this).parent().parent();
     let index = element.get(0).id.split("-")[1];
-    // element.children().eq(0).html("<input type='text' id='fromCity-" + index + "' class='form-control' value='" + addedRoads[index].fromCity + "'>");
+
+    let valBeforeEditFrom = element.children().eq(0).text();
     element.children().eq(0).html("<select class='form-control' id='fromCity-" + index + "'></select>");
-    updateCitiesDropDown("#fromCity-" + index);
-    // element.children().eq(1).html("<input type='text' id='toCity-" + index + "' class='form-control' value='" + addedRoads[index].toCity + "'>");
+    updateCitiesDropDown("#fromCity-" + index, valBeforeEditFrom);
+
+    let valBeforeEditTo = element.children().eq(1).text();
     element.children().eq(1).html("<select class='form-control' id='toCity-" + index + "'></select>");
-    updateCitiesDropDown("#toCity-" + index);
+    updateCitiesDropDown("#toCity-" + index, valBeforeEditTo);
 
     element.children().eq(2).html("<input type='number' id='capacity-" + index + "' class='form-control' value='" + addedRoads[index].capacity + "'>");
     element.children().eq(3).html("<input type='number' id='price-" + index + "' class='form-control' value='" + addedRoads[index].price + "'>");
@@ -614,9 +616,14 @@ function noCitiesDropDown() {
     }
 }
 
-function updateCitiesDropDown(elemetSelector) {
+function updateCitiesDropDown(elemetSelector, selectedElement) {
     let citiesHtml = addedCities.filter(x => x.deleted === false).map(function (value, index, array) {
-        return "<option value='" + value.cityName + "'>" + value.cityName + "</option>"
+        if(selectedElement === value.cityName){
+            return "<option value='" + value.cityName + "' selected>" + value.cityName + "</option>"
+        }else{
+            return "<option value='" + value.cityName + "'>" + value.cityName + "</option>"
+        }
+
     });
 
     // $("#fromCity").html(citiesHtml);
