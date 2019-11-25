@@ -21,18 +21,18 @@ function checkWidth(init) {
         $('#draw-container').addClass('col-md-12');
     } else {
         // if (!init) {
-            $('#form-container').removeClass('col-md-12');
-            $('#form-container').addClass('col-md-4');
-            $('#draw-container').removeClass('col-md-12');
-            $('#draw-container').addClass('col-md-8');
+        $('#form-container').removeClass('col-md-12');
+        $('#form-container').addClass('col-md-4');
+        $('#draw-container').removeClass('col-md-12');
+        $('#draw-container').addClass('col-md-8');
         // }
     }
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
     checkWidth(true);
 
-    $(window).resize(function() {
+    $(window).resize(function () {
         checkWidth(false);
     });
 });
@@ -438,7 +438,7 @@ function drawCities(cities) {
 
 // Create a graph object
     graph['nodes'] = nodes;
-    if('edges' in graph){
+    if ('edges' in graph) {
         delete graph['edges']
         // TODO clear edges table because it is wrong any more
     }
@@ -618,9 +618,9 @@ function noCitiesDropDown() {
 
 function updateCitiesDropDown(elemetSelector, selectedElement) {
     let citiesHtml = addedCities.filter(x => x.deleted === false).map(function (value, index, array) {
-        if(selectedElement === value.cityName){
+        if (selectedElement === value.cityName) {
             return "<option value='" + value.cityName + "' selected>" + value.cityName + "</option>"
-        }else{
+        } else {
             return "<option value='" + value.cityName + "'>" + value.cityName + "</option>"
         }
 
@@ -716,9 +716,17 @@ function showPlans() {
 
 function onPlanChange(fromFile) {
     let selectedPlanName = null;
-    if(fromFile.target){
+    if (fromFile.target) {
         selectedPlanName = $('#plan-name').val();
-    }else{
+        $("#showPlan").html(
+            "<tr id='selectedPlan'>" +
+            drawPlanRow(selectedPlanName) +
+            "</tr>"
+        );
+
+        $(".editPlan").on('click', editPlanRow);
+        $(".removePlan").on('click', removePlanRow);
+    } else {
         selectedPlanName = '';
     }
 
@@ -775,4 +783,37 @@ function onPlanChange(fromFile) {
             message: "Same plan selected"
         }, notifySettings('info'));
     }
+}
+
+function drawPlanRow(cityName) {
+    return "<td class='col-md-6'>" +
+        cityName +
+        "</td>" +
+        "<td class='col-md-6'>" +
+        "<button type='button' class='btn btn-info btn-sm editPlan'>" +
+        "<span class='glyphicon glyphicon-edit'></span>" +
+        "</button>" +
+        "<button type='button' class='btn btn-danger btn-sm removePlan'>" +
+        "<span class='glyphicon glyphicon-remove'></span>" +
+        "</button>" +
+        "</td>";
+}
+
+function editPlanRow() {
+
+}
+
+function removePlanRow() {
+    $.ajax({
+        type: "DELETE",
+        url: "/delete-plan/" + selectedPlan.id,
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            console.log("Success", data);
+            location.reload();
+        },
+        error: function (data) {
+            console.log("Error", data);
+        }
+    });
 }

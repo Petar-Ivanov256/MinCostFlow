@@ -77,6 +77,11 @@ public class ServiceController {
         return planService.saveAndFlush(planEntity);
     }
 
+    @RequestMapping(value = "/delete-plan/{id}", method = RequestMethod.DELETE)
+    public void deletePlan(@PathVariable("id") Long id) {
+        planService.deleteById(id);
+    }
+
     @ResponseBody
     @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE, value = "/process-file")
     public Plan processInputCSV(MultipartHttpServletRequest request, HttpServletResponse response) throws IOException {
