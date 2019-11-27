@@ -672,7 +672,7 @@ function savePlan() {
 
     if (inputPlanName !== null && inputPlanName !== "") {
         plan = {
-            name: inputPlanName,
+            planName: inputPlanName,
             roads: []
         };
         $.ajax({
@@ -800,7 +800,78 @@ function drawPlanRow(cityName) {
 }
 
 function editPlanRow() {
+    let element = $("#selectedPlan");
+    let index = element.get(0).id.split("-")[1];
 
+    element.children().eq(0).html("<input type='text' id='editPlanName' class='form-control' value='" + selectedPlan.planName + "'>");
+    element.children().eq(1).html(
+        "<button type='button' id='saveEditPlanName' class='btn btn-success btn-sm'>" +
+        "<span class='glyphicon glyphicon-floppy-saved'></span>" +
+        "</button>"
+    );
+
+    $("#saveEditPlanName").on('click', function () {
+        let planName = $("#editPlanName").val();
+
+        if (planName.length > 0) {
+            selectedPlan.planName = planName;
+
+            let requestPlan = $.extend(true, {}, selectedPlan);
+
+            for (let i = 0; i < requestPlan.roads.length; i++) {
+                requestPlan.roads[i].fromCity = selectedPlan.roads[i].fromCity.cityName;
+                requestPlan.roads[i].toCity = selectedPlan.roads[i].toCity.cityName;
+                delete requestPlan.roads[i].id;
+            }
+
+            $.ajax({
+                type: "PUT",
+                url: "/update-plan",
+                data: JSON.stringify(requestPlan),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log("Success", data);
+                    // Unbind the events before removing the element in order to avoid replication of event listeners
+                    $(".editPlan").off();
+                    element.empty();
+                    element.html(drawPlanRow(planName));
+
+                    $(".editPlan").on('click', editPlanRow);
+                    $(".removePlan").on('click', removePlanRow);
+                    $(this).off();
+                },
+                error: function (data) {
+                    console.log("Error", data);
+                    $.notify({
+                        // options
+                        message: "Something went wrong, can't update plan"
+                    }, notifySettings('danger'));
+
+                    $(".editPlan").off();
+                    element.empty();
+                    element.html(drawPlanRow(planName));
+
+                    $(".editPlan").on('click', editPlanRow);
+                    $(".removePlan").on('click', removePlanRow);
+                    $(this).off();
+
+                }
+            });
+        } else {
+            $.notify({
+                // options
+                message: "Plan name should not be empty"
+            }, notifySettings('danger'));
+
+            $(".editPlan").off();
+            element.empty();
+            element.html(drawPlanRow(selectedPlan.planName));
+
+            $(".editPlan").on('click', editPlanRow);
+            $(".removePlan").on('click', removePlanRow);
+            $(this).off();
+        }
+    });
 }
 
 function removePlanRow() {
@@ -808,8 +879,7 @@ function removePlanRow() {
         type: "DELETE",
         url: "/delete-plan/" + selectedPlan.id,
         contentType: "application/json; charset=utf-8",
-        success: function (data) {
-            console.log("Success", data);
+        success: function () {
             location.reload();
         },
         error: function (data) {

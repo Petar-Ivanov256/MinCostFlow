@@ -10,6 +10,7 @@ import com.project.opticost.db.model.Road;
 import com.project.opticost.db.services.CityService;
 import com.project.opticost.db.services.PlanService;
 import com.project.opticost.db.services.RoadService;
+import com.project.opticost.utils.exceptions.PlanNotInDataBaseException;
 import com.project.opticost.utils.exceptions.RoadsWithNotMatchingPlanException;
 import com.project.opticost.utils.requests.helpers.MinCostResultRequestEntity;
 import com.project.opticost.utils.requests.helpers.MultiCostRequestEntity;
@@ -65,16 +66,27 @@ public class ServiceController {
     @RequestMapping(value = "/save-plan", method = RequestMethod.POST)
     public Plan savePlan(@RequestBody PlanRequstEntity plan) {
         Plan planEntity = new Plan();
-        Plan dbPlan = planService.findByPlanName(plan.getName());
+        Plan dbPlan = planService.findByPlanName(plan.getPlanName());
 
         if (dbPlan != null) {
             planEntity.setId(dbPlan.getId());
         }
 
-        planEntity.setPlanName(plan.getName());
+        planEntity.setPlanName(plan.getPlanName());
         planEntity.setRoads(roadService.extractRoads(plan.getRoads()));
 
         return planService.saveAndFlush(planEntity);
+    }
+
+    @RequestMapping(value = "/update-plan", method = RequestMethod.PUT)
+    public Plan updatePlan(@RequestBody PlanRequstEntity plan) throws PlanNotInDataBaseException {
+        Plan dbPlan = planService.getOne(plan.getId());
+        if (dbPlan == null) {
+            throw new PlanNotInDataBaseException("Can't find a plan for update");
+        }
+        dbPlan.setPlanName(plan.getPlanName());
+
+        return planService.saveAndFlush(dbPlan);
     }
 
     @RequestMapping(value = "/delete-plan/{id}", method = RequestMethod.DELETE)
