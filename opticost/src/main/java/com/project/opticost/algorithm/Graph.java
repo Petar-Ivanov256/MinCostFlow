@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 public class Graph {
-    private final int adjMatrixSize = 5;
+    private int adjMatrixSize = 3;
 
     private List<Edge> listOfEdges;
     private List<Vertex> listOfVertices;
@@ -354,7 +354,13 @@ public class Graph {
                 if (adjMatrixSize > e.getFrom().getSeq() && adjMatrixSize > e.getTo().getSeq()) {
                     adjacencyMatrix[e.getFrom().getSeq()][e.getTo().getSeq()] = e.getCapacity();
                 } else {
-                    this.updatadjMatrixSize();
+                    this.adjMatrixSize = this.adjMatrixSize * 2;
+                    double [][] tmp = new double[adjMatrixSize][adjMatrixSize];
+                    copyMatrix(tmp, this.adjacencyMatrix);
+                    this.adjacencyMatrix = new double[adjMatrixSize][adjMatrixSize];
+                    copyMatrix(this.adjacencyMatrix, tmp);
+                    updateAdjacencyMatrix();
+//                    this.updatadjMatrixSize();
                 }
             }
         }
@@ -401,6 +407,14 @@ public class Graph {
     public void printVertexSeq() {
         for (Vertex v : this.listOfVertices) {
             System.out.println(v + " -> " + v.getSeq());
+        }
+    }
+
+    private void copyMatrix(double [][] dest, double [][] source){
+        for (int i = 0; i < source.length; i++) {
+            for (int j = 0; j < source[i].length; j++) {
+                dest[i][j] = source[i][j];
+            }
         }
     }
 
