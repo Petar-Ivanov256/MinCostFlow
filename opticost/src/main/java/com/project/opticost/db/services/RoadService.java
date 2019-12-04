@@ -31,23 +31,23 @@ public class RoadService extends AbstractService<Road, Long> {
         return roadsRepo;
     }
 
-    public List<Road> persistRoads(List<RoadRequestEntity> roads) throws RoadsWithNotMatchingPlanException {
+    public List<Road> persistRoads(List<RoadRequestEntity> roads, Long planId) throws RoadsWithNotMatchingPlanException {
         List<Road> extractedRoads = extractRoads(roads);
-        roadsRepo.deleteAll(roadsRepo.findRoadsByPlan(getPlanOfTheRoads(extractedRoads)));
+        roadsRepo.deleteAll(roadsRepo.findRoadsByPlan(planService.getOne(planId)));
         return roadsRepo.saveAll(extractedRoads);
     }
 
-    public Plan getPlanOfTheRoads(List<Road> roads) throws RoadsWithNotMatchingPlanException {
-        Plan plan = roads.get(0).getPlan();
-
-        for(Road road: roads){
-            if(!road.getPlan().getId().equals(plan.getId())){
-                throw new RoadsWithNotMatchingPlanException();
-            }
-        }
-
-        return plan;
-    }
+//    public Plan getPlanOfTheRoads(List<Road> roads) throws RoadsWithNotMatchingPlanException {
+//        Plan plan = roads.get(0).getPlan();
+//
+//        for(Road road: roads){
+//            if(!road.getPlan().getId().equals(plan.getId())){
+//                throw new RoadsWithNotMatchingPlanException();
+//            }
+//        }
+//
+//        return plan;
+//    }
 
     public List<Road> extractRoads(List<RoadRequestEntity> roads) {
         List<Road> results = new ArrayList<>();

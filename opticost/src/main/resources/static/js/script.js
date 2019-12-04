@@ -410,7 +410,7 @@ function saveRoads() {
     console.log(data)
     $.ajax({
         type: "POST",
-        url: "/save-roads",
+        url: "/save-roads/" + selectedPlan.id,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         success: function (data) {
@@ -683,7 +683,16 @@ function savePlan() {
             success: function (data) {
                 console.log("Success", data);
                 $("#verticesEdges").show();
-                selectedPlan = {planName: inputPlanName, roads: []}
+                selectedPlan = data;
+                $(".plan-input").hide();
+                $("#showPlan").html(
+                    "<tr id='selectedPlan'>" +
+                    drawPlanRow(data.planName) +
+                    "</tr>"
+                );
+
+                $(".editPlan").on('click', editPlanRow);
+                $(".removePlan").on('click', removePlanRow);
             },
             error: function (data) {
                 console.log("Error", data);
@@ -735,6 +744,7 @@ function onPlanChange(fromFile) {
         s.graph.clear();
         $('#showCities').empty();
         $('#showRoads').empty();
+        $('#showPlan').empty();
         addedRoads = [];
         addedCities = [];
         cityCnt = 0;
@@ -742,8 +752,14 @@ function onPlanChange(fromFile) {
         if (selectedPlanName === 'new') {
             $("#verticesEdges").hide();
             $(".plan-input").show();
-            addedCities = [];
+            s.graph.clear();
+            $('#showCities').empty();
+            $('#showRoads').empty();
+            $('#showPlan').empty();
             addedRoads = [];
+            addedCities = [];
+            cityCnt = 0;
+            roadCnt = 0;
             updateCitiesDropDown("#fromCity");
             updateCitiesDropDown("#toCity");
             updateCitiesDropDown("#fromCityRun");

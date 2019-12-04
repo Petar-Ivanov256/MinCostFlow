@@ -53,9 +53,9 @@ public class ServiceController {
         return cityService.saveAll(cities);
     }
 
-    @RequestMapping(value = "/save-roads", method = RequestMethod.POST)
-    public List<Road> saveRoads(@RequestBody List<RoadRequestEntity> roads) throws RoadsWithNotMatchingPlanException {
-        return roadService.persistRoads(roads);
+    @RequestMapping(value = "/save-roads/{planId}", method = RequestMethod.POST)
+    public List<Road> saveRoads(@RequestBody List<RoadRequestEntity> roads, @PathVariable("planId") Long planId) throws RoadsWithNotMatchingPlanException {
+        return roadService.persistRoads(roads, planId);
     }
 
     @RequestMapping(value = "/plans", method = RequestMethod.GET)
