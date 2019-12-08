@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 public class Graph {
-    private int adjMatrixSize = 3;
+    private int adjMatrixSize = 4;
 
     private List<Edge> listOfEdges;
     private List<Vertex> listOfVertices;
@@ -12,6 +12,8 @@ public class Graph {
     private double[][] adjacencyMatrix;
     // TODO implement it with secound instance of Graph
     private double[][] residualGraph;
+    // TODO think is it better to be Map<?, List<Edge>> instead of List<List<Edge>>
+    private List<List<Edge>> residualGraph1;
     private double[][] priceGraph;
     private double epsilon;
     private double minCostFlow;
@@ -21,7 +23,6 @@ public class Graph {
         this.listOfEdges = new ArrayList<>();
         this.listOfVertices = new ArrayList<>();
         this.adjacencyList = new HashMap<>();
-        // TODO make method to take care of the size of the matrix
         this.adjacencyMatrix = new double[adjMatrixSize][adjMatrixSize];
     }
 
@@ -111,10 +112,10 @@ public class Graph {
 
     public double maxFlow(Vertex from, Vertex to) {
         residualGraph = new double[adjMatrixSize][adjMatrixSize];
+        residualGraph1 = new ArrayList<>();
         Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
         Vertex end = this.listOfVertices.stream().filter(x -> x.equals(to)).findAny().orElse(null);
 
-        // TODO make the size more reasonable
         for (int i = 0; i < adjMatrixSize; i++) {
             for (int j = 0; j < adjMatrixSize; j++) {
                 this.residualGraph[i][j] = this.adjacencyMatrix[i][j];

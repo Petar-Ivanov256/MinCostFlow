@@ -33,7 +33,9 @@ public class RoadService extends AbstractService<Road, Long> {
 
     public List<Road> persistRoads(List<RoadRequestEntity> roads, Long planId) throws RoadsWithNotMatchingPlanException {
         List<Road> extractedRoads = extractRoads(roads);
-        roadsRepo.deleteAll(roadsRepo.findRoadsByPlan(planService.getOne(planId)));
+        Plan plan = planService.getOne(planId);
+        roadsRepo.deleteAll(roadsRepo.findRoadsByPlan(plan));
+        extractedRoads.forEach(x -> x.setPlan(plan));
         return roadsRepo.saveAll(extractedRoads);
     }
 

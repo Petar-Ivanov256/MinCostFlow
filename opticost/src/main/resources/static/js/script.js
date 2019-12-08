@@ -256,12 +256,20 @@ function addCity(cityData) {
         cityName = $("#inputCityName").val();
         xCoord = $("#inputX").val();
         yCoord = $("#inputY").val();
+
+        if(cityName === '' || xCoord === '' || yCoord === ''){
+            $.notify({
+                // options
+                message: "Input fields for city can't be empty, please enter values"
+            }, notifySettings('danger'));
+
+            return
+        }
     } else {
         cityName = cityData.cityName;
         xCoord = cityData.xCoord;
         yCoord = cityData.yCoord;
     }
-
 
     let value = {
         'cityName': cityName,
@@ -328,6 +336,15 @@ function addRoad(roadData) {
         toCity = $("#toCity").val();
         cap = $("#inputCap").val();
         price = $("#inputPrice").val();
+
+        if(fromCity === '' || toCity === '' || cap === '' || price === ''){
+            $.notify({
+                // options
+                message: "Input fields for edge can't be empty, please enter values"
+            }, notifySettings('danger'));
+
+            return
+        }
     } else {
         fromCity = roadData.fromCity.cityName;
         toCity = roadData.toCity.cityName;
@@ -744,7 +761,6 @@ function onPlanChange(fromFile) {
         s.graph.clear();
         $('#showCities').empty();
         $('#showRoads').empty();
-        $('#showPlan').empty();
         addedRoads = [];
         addedCities = [];
         cityCnt = 0;
