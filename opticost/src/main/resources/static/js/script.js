@@ -225,6 +225,12 @@ function removeCityRow() {
     let element = $(this).parent().parent();
     let index = element.get(0).id.split("-")[1];
     addedCities[index].deleted = true;
+    addedRoads.forEach(function (x) {
+        if (x.fromCity === addedCities[index].cityName || x.toCity === addedCities[index].cityName) {
+            x.deleted = true;
+        }
+    });
+
     // Unbind the events before removing the element in order to avoid replication of event listeners
     $(".removeCity").off();
     element.remove();
@@ -257,7 +263,7 @@ function addCity(cityData) {
         xCoord = $("#inputX").val();
         yCoord = $("#inputY").val();
 
-        if(cityName === '' || xCoord === '' || yCoord === ''){
+        if (cityName === '' || xCoord === '' || yCoord === '') {
             $.notify({
                 // options
                 message: "Input fields for city can't be empty, please enter values"
@@ -337,7 +343,7 @@ function addRoad(roadData) {
         cap = $("#inputCap").val();
         price = $("#inputPrice").val();
 
-        if(fromCity === '' || toCity === '' || cap === '' || price === ''){
+        if (fromCity === '' || toCity === '' || cap === '' || price === '') {
             $.notify({
                 // options
                 message: "Input fields for edge can't be empty, please enter values"
@@ -374,6 +380,35 @@ function addRoad(roadData) {
     );
 }
 
+function persistRoadTable(roads) {
+    addedRoads = [];
+    roadCnt = 0;
+    $('#showRoads').empty();
+    for (let i = 0; i < roads.length; i++) {
+        let showTable = $("#showRoads");
+        let previousHtml = showTable.html();
+        showTable.html(
+            previousHtml +
+            "<tr id='road-" + roadCnt + "'>" +
+            drawRoadRow(roads[i].fromCity.cityName, roads[i].toCity.cityName, roads[i].capacity, roads[i].price) +
+            "</tr>"
+        );
+        $(".editRoad").on('click', editRoadRow);
+        $(".removeRoad").on('click', removeRoadRow);
+        roadCnt = roadCnt + 1;
+        addedRoads.push(
+            {
+                'fromCity': roads[i].fromCity.cityName,
+                'toCity': roads[i].toCity.cityName,
+                'capacity': roads[i].capacity,
+                'price': roads[i].price,
+                'deleted': false,
+                'planName': selectedPlan.planName
+            }
+        );
+    }
+}
+
 function drawRoadRow(fromCity, toCity, cap, price) {
     return "<td class='col-md-3'>" +
         fromCity +
@@ -408,6 +443,9 @@ function saveCities() {
         success: function (data) {
             console.log("The cities were successfully saved", data);
             drawCities(data);
+            if (addedRoads.length > 0) {
+                saveRoads(true);
+            }
             $.notify({
                 message: "The cities were successfully saved"
             }, notifySettings('success'));
@@ -421,7 +459,7 @@ function saveCities() {
     });
 }
 
-function saveRoads() {
+function saveRoads(updateRoadsTable) {
     console.log(addedRoads);
     let data = addedRoads.filter(x => x.deleted === false);
     console.log(data)
@@ -433,6 +471,9 @@ function saveRoads() {
         success: function (data) {
             console.log("The roads were successfully saved", data);
             drawRoads(data);
+            if(updateRoadsTable === true){
+                persistRoadTable(data);
+            }
             $.notify({
                 message: "The roads were successfully saved"
             }, notifySettings('success'));
