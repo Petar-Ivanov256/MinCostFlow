@@ -1,6 +1,7 @@
 package com.project.opticost.db.services;
 
 import com.project.opticost.db.model.City;
+import com.project.opticost.db.model.Plan;
 import com.project.opticost.db.repo.CityRepository;
 import com.project.opticost.db.services.interfaces.AbstractService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,5 +51,10 @@ public class CityService extends AbstractService<City,Long> {
         }
 
         return result;
+    }
+
+    public boolean checkIfCityIsPresent(Plan plan, String cityName) {
+        return plan.getRoads().stream().anyMatch(x -> x.getToCity().getCityName().equals(cityName)) ||
+                plan.getRoads().stream().anyMatch(x -> x.getFromCity().getCityName().equals(cityName));
     }
 }

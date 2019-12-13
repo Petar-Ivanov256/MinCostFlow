@@ -131,30 +131,6 @@ public class ServiceController {
 
         plan.setRoads(result);
 
-
-//        Function<String, Road> mapToItem = (line) -> {
-//            String[] data = line.split(",");
-//
-//
-//            Road road = new Road();
-//
-//
-//            return road;
-//        };
-//
-//        List<VodInput> listVodInput = list.stream().skip(1).map(mapToItem).collect(Collectors.toList());
-//        listVodInput.sort((v1, v2) -> {
-//            if (v1.getTitle().equals(v2.getTitle())) {
-//                if (v1.getSeason().equals(v2.getSeason())) {
-//                    return v1.getEpisode().compareTo(v2.getEpisode());
-//                } else {
-//                    return v1.getSeason().compareTo(v2.getSeason());
-//                }
-//            } else {
-//                return v1.getTitle().compareTo(v2.getTitle());
-//            }
-//        });
-
         return planService.saveAndFlush(plan);
     }
 
@@ -168,7 +144,7 @@ public class ServiceController {
         Set<City> citySet = new HashSet<>();
 
         if (plan != null) {
-            if (checkIfCityIsPresent(plan, run.getFromCity()) && checkIfCityIsPresent(plan, run.getToCity())) {
+            if (cityService.checkIfCityIsPresent(plan, run.getFromCity()) && cityService.checkIfCityIsPresent(plan, run.getToCity())) {
                 fromCity = new Vertex(run.getFromCity());
                 toCity = new Vertex(run.getToCity());
             }else {
@@ -200,17 +176,6 @@ public class ServiceController {
             }
         }
 
-//        Vertex v0 = new Vertex("0");
-//        Vertex v1 = new Vertex("1");
-//        Vertex v2 = new Vertex("2");
-//
-//        graph.addEdge(new Edge(v0, v1, 2, 7));
-//        graph.addEdge(new Edge(v0, v2, 10, 16));
-//        graph.addEdge(new Edge(v1, v2, 5, 4));
-
-
-//        graph.minCostFlowCostScaling(new Vertex("0"), new Vertex("2"), 4);
-
         graph.minCostFlowCycleCancel(fromCity, toCity, run.getCargo());
         graph.printGraphMinCostFlow();
 
@@ -225,11 +190,5 @@ public class ServiceController {
         }
 
         return result;
-    }
-
-    //TODO put this in some service
-    private boolean checkIfCityIsPresent(Plan plan, String cityName) {
-        return plan.getRoads().stream().anyMatch(x -> x.getToCity().getCityName().equals(cityName)) ||
-                plan.getRoads().stream().anyMatch(x -> x.getFromCity().getCityName().equals(cityName));
     }
 }

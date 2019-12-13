@@ -151,12 +151,10 @@ function editCityRow() {
             updateCitiesDropDown("#toCity");
             updateCitiesDropDown("#fromCityRun");
             updateCitiesDropDown("#toCityRun");
-            // Unbind the events before removing the element in order to avoid replication of event listeners
-            // $(".editCity").off();
+
             element.empty();
             element.html(drawCityRow(cityName, xCoord, yCoord));
 
-            // $(".editCity").on('click', editCityRow);
             $(".removeCity").on('click', removeCityRow);
             $(this).off();
         } else {
@@ -165,12 +163,9 @@ function editCityRow() {
                 message: "Can't add the same city or different city with the same coordinates"
             }, notifySettings('danger'));
 
-            // Unbind the events before removing the element in order to avoid replication of event listeners
-            // $(".editCity").off();
             element.empty();
             element.html(drawCityRow(addedCities[index].cityName, addedCities[index].xCoord, addedCities[index].yCoord));
 
-            // $(".editCity").on('click', editCityRow);
             $(".removeCity").on('click', removeCityRow);
             $(this).off();
         }
@@ -298,7 +293,6 @@ function addCity(cityData) {
             drawCityRow(cityName, xCoord, yCoord) +
             "</tr>"
         );
-        // $(".editCity").on('click', editCityRow);
         $(".removeCity").on('click', removeCityRow);
         cityCnt = cityCnt + 1;
         addedCities.push(value);
