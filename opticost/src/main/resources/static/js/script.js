@@ -8,6 +8,7 @@ var s = null;
 var graph = {};
 var cityCnt = 0;
 var roadCnt = 0;
+var citiesSaved = true;
 
 var nodeSize = 3;
 var nodeColor = '#008cc2';
@@ -121,6 +122,7 @@ function init() {
 }
 
 function editCityRow() {
+    citiesSaved = false;
     // TODO by editing the City name, it is not saved
     let element = $(this).parent().parent();
     let index = element.get(0).id.split("-")[1];
@@ -150,11 +152,11 @@ function editCityRow() {
             updateCitiesDropDown("#fromCityRun");
             updateCitiesDropDown("#toCityRun");
             // Unbind the events before removing the element in order to avoid replication of event listeners
-            $(".editCity").off();
+            // $(".editCity").off();
             element.empty();
             element.html(drawCityRow(cityName, xCoord, yCoord));
 
-            $(".editCity").on('click', editCityRow);
+            // $(".editCity").on('click', editCityRow);
             $(".removeCity").on('click', removeCityRow);
             $(this).off();
         } else {
@@ -164,11 +166,11 @@ function editCityRow() {
             }, notifySettings('danger'));
 
             // Unbind the events before removing the element in order to avoid replication of event listeners
-            $(".editCity").off();
+            // $(".editCity").off();
             element.empty();
             element.html(drawCityRow(addedCities[index].cityName, addedCities[index].xCoord, addedCities[index].yCoord));
 
-            $(".editCity").on('click', editCityRow);
+            // $(".editCity").on('click', editCityRow);
             $(".removeCity").on('click', removeCityRow);
             $(this).off();
         }
@@ -222,6 +224,7 @@ function editRoadRow() {
 }
 
 function removeCityRow() {
+    citiesSaved = false;
     let element = $(this).parent().parent();
     let index = element.get(0).id.split("-")[1];
     addedCities[index].deleted = true;
@@ -252,6 +255,8 @@ function removeRoadRow() {
 }
 
 function addCity(cityData) {
+    citiesSaved = false;
+
     let cityName = null;
     let xCoord = null;
     let yCoord = null;
@@ -293,7 +298,7 @@ function addCity(cityData) {
             drawCityRow(cityName, xCoord, yCoord) +
             "</tr>"
         );
-        $(".editCity").on('click', editCityRow);
+        // $(".editCity").on('click', editCityRow);
         $(".removeCity").on('click', removeCityRow);
         cityCnt = cityCnt + 1;
         addedCities.push(value);
@@ -320,8 +325,8 @@ function drawCityRow(cityName, xCoord, yCoord) {
         yCoord +
         "</td>" +
         "<td class='col-md-3'>" +
-        "<button type='button' class='btn btn-info btn-sm editCity'>" +
-        "<span class='glyphicon glyphicon-edit'></span>" +
+        // "<button type='button' class='btn btn-info btn-sm editCity'>" +
+        // "<span class='glyphicon glyphicon-edit'></span>" +
         "</button>" +
         "<button type='button' class='btn btn-danger btn-sm removeCity'>" +
         "<span class='glyphicon glyphicon-remove'></span>" +
@@ -442,6 +447,7 @@ function saveCities() {
         contentType: "application/json; charset=utf-8",
         success: function (data) {
             console.log("The cities were successfully saved", data);
+            citiesSaved = true;
             drawCities(data);
             if (addedRoads.length > 0) {
                 saveRoads(true);
@@ -460,31 +466,37 @@ function saveCities() {
 }
 
 function saveRoads(updateRoadsTable) {
-    console.log(addedRoads);
-    let data = addedRoads.filter(x => x.deleted === false);
-    console.log(data)
-    $.ajax({
-        type: "POST",
-        url: "/save-roads/" + selectedPlan.id,
-        data: JSON.stringify(data),
-        contentType: "application/json; charset=utf-8",
-        success: function (data) {
-            console.log("The roads were successfully saved", data);
-            drawRoads(data);
-            if(updateRoadsTable === true){
-                persistRoadTable(data);
+    if(citiesSaved === true){
+        console.log(addedRoads);
+        let data = addedRoads.filter(x => x.deleted === false);
+        console.log(data)
+        $.ajax({
+            type: "POST",
+            url: "/save-roads/" + selectedPlan.id,
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                console.log("The roads were successfully saved", data);
+                drawRoads(data);
+                if(updateRoadsTable === true){
+                    persistRoadTable(data);
+                }
+                $.notify({
+                    message: "The roads were successfully saved"
+                }, notifySettings('success'));
+            },
+            error: function (data) {
+                console.log("There is a problem can't save the roads", data);
+                $.notify({
+                    message: "There is a problem can't save the roads"
+                }, notifySettings('danger'));
             }
-            $.notify({
-                message: "The roads were successfully saved"
-            }, notifySettings('success'));
-        },
-        error: function (data) {
-            console.log("There is a problem can't save the roads", data);
-            $.notify({
-                message: "There is a problem can't save the roads"
-            }, notifySettings('danger'));
-        }
-    });
+        });
+    }else{
+        $.notify({
+            message: "Please save the changes of the cities first"
+        }, notifySettings('warning'));
+    }
 }
 
 function drawCities(cities) {
