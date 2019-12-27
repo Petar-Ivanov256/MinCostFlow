@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 public class Graph {
-    private int adjMatrixSize = 4;
+    private int adjMatrixSize = 5;
 
     private List<Edge> listOfEdges;
     private List<Vertex> listOfVertices;
@@ -12,8 +12,9 @@ public class Graph {
     private double[][] adjacencyMatrix;
     // TODO implement it with secound instance of Graph
     private double[][] residualGraph;
-    // TODO think is it better to be Map<?, List<Edge>> instead of List<List<Edge>>
-    private List<List<Edge>> residualGraph1;
+    // TODO think is it better to be Map<?, List<Edge>> instead of List<List<Edge>> - not so valid
+    // TODO add validation for parallel arcs
+    private Map<Vertex, List<ResidualEdge>> residualGraph1;
     private double[][] priceGraph;
     private double epsilon;
     private double minCostFlow;
@@ -111,16 +112,31 @@ public class Graph {
     }
 
     public double maxFlow(Vertex from, Vertex to) {
-        residualGraph = new double[adjMatrixSize][adjMatrixSize];
-        residualGraph1 = new ArrayList<>();
+//        residualGraph = new double[adjMatrixSize][adjMatrixSize];
+        residualGraph1 = new HashMap<>();
         Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
         Vertex end = this.listOfVertices.stream().filter(x -> x.equals(to)).findAny().orElse(null);
 
-        for (int i = 0; i < adjMatrixSize; i++) {
-            for (int j = 0; j < adjMatrixSize; j++) {
-                this.residualGraph[i][j] = this.adjacencyMatrix[i][j];
+        for (Map.Entry<Vertex, List<Edge>> entry : this.adjacencyList.entrySet()) {
+            if(!residualGraph1.containsKey(entry.getKey())){
+                residualGraph1.put(entry.getKey(), new ArrayList<>());
+            }
+            for (Edge e : entry.getValue()) {
+                residualGraph1.get(entry.getKey()).add(new ResidualEdge(e.getFrom(), e.getTo(), e.getCapacity(), e.getPrice()));
+                if(!residualGraph1.containsKey(e.getTo())){
+                    residualGraph1.put(e.getTo(), new ArrayList<>());
+                    residualGraph1.get(e.getTo()).add(new ResidualEdge(e.getTo(), e.getFrom(), 0,  e.getPrice().negate()));
+                }else{
+                    residualGraph1.get(e.getTo()).add(new ResidualEdge(e.getTo(), e.getFrom(), 0,  e.getPrice().negate()));
+                }
             }
         }
+
+//        for (int i = 0; i < adjMatrixSize; i++) {
+//            for (int j = 0; j < adjMatrixSize; j++) {
+//                this.residualGraph[i][j] = this.adjacencyMatrix[i][j];
+//            }
+//        }
 
         double maxFlow = 0d;
         while (BFS(start, end)) {
@@ -130,7 +146,12 @@ public class Graph {
             while (path.getParents().size() != 0) {
                 Vertex u = path.getParents().get(path.getParents().size() - 1);
                 Vertex v = path;
-                minFlow = Math.min(minFlow, residualGraph[u.getSeq()][v.getSeq()]);
+
+//                minFlow = Math.min(minFlow, residualGraph[u.getSeq()][v.getSeq()]);
+
+                minFlow = Math.min(minFlow, residualGraph1.get(u).stream()
+                        .filter(x -> x.getTo().equals(v))
+                        .findAny().orElseThrow(NoSuchElementException::new).getFlow());
 
                 path = path.getParents().get(path.getParents().size() - 1);
             }
@@ -140,8 +161,22 @@ public class Graph {
                 Vertex u = path.getParents().get(path.getParents().size() - 1);
                 Vertex v = path;
 
-                residualGraph[u.getSeq()][v.getSeq()] -= minFlow;
-                residualGraph[v.getSeq()][u.getSeq()] += minFlow;
+                double flowUV = residualGraph1.get(u).stream()
+                        .filter(x -> x.getTo().equals(v))
+                        .findAny().orElseThrow(NoSuchElementException::new).getFlow();
+                double flowVU = residualGraph1.get(v).stream()
+                        .filter(x -> x.getTo().equals(u))
+                        .findAny().orElseThrow(NoSuchElementException::new).getFlow();
+
+                residualGraph1.get(u).stream()
+                        .filter(x -> x.getTo().equals(v))
+                        .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowUV - minFlow);
+                residualGraph1.get(v).stream()
+                        .filter(x -> x.getTo().equals(u))
+                        .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowVU + minFlow);
+
+//                residualGraph[u.getSeq()][v.getSeq()] -= minFlow;
+//                residualGraph[v.getSeq()][u.getSeq()] += minFlow;
 
                 path = path.getParents().get(path.getParents().size() - 1);
             }
@@ -165,7 +200,7 @@ public class Graph {
         for (int i = 0; i < this.listOfVertices.size() - 1; i++) {
             for (Edge e : this.listOfEdges) {
                 // TOTO check if it is ok to make the bigdecimal a double here
-                if (e.getTo().getDistance() > e.getFrom().getDistance() +  e.getPrice().doubleValue()) {
+                if (e.getTo().getDistance() > e.getFrom().getDistance() + e.getPrice().doubleValue()) {
                     e.getTo().setDistance(e.getFrom().getDistance() + e.getPrice().doubleValue());
                     e.getTo().getParents().add(e.getFrom());
                 }
@@ -181,7 +216,7 @@ public class Graph {
         return null;
     }
 
-    public Vertex  findNegativeCycleInResidualGraph(Vertex from) {
+    public Vertex findNegativeCycleInResidualGraph(Vertex from) {
         Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
 //        double[] parent = new double[adjMatrixSize];
 //
@@ -244,7 +279,7 @@ public class Graph {
 
         if (maxFlow < cargo) {
             //TODO make custom exception
-            throw new Exception("There is no feasible solution for this sypply: " + cargo);
+            throw new Exception("There is no feasible solution for this supply: " + cargo);
         } else {
             this.establishFeasibleFLow(source, dest);
             this.generatePriceGraph();
@@ -302,26 +337,46 @@ public class Graph {
         this.removeVertex(source);
         this.removeVertex(dest);
 
-        for (int i = 0; i < adjMatrixSize; i++) {
-            // The the indexes are reversed because in the residual network there is no edge "s" -> start and end -> "t"
-            // because we add artificial edges with the desired capacity of the supply and demand.
-            // That is why these edges are with full capacity and we have only the reversed edges in the Residual network
-            this.residualGraph[i][source.getSeq()] = 0;
-            this.residualGraph[dest.getSeq()][i] = 0;
-        }
+//        for (int i = 0; i < adjMatrixSize; i++) {
+//            // The the indexes are reversed because in the residual network there is no edge "s" -> start and end -> "t"
+//            // because we add artificial edges with the desired capacity of the supply and demand.
+//            // That is why these edges are with full capacity and we have only the reversed edges in the Residual network
+//            this.residualGraph[i][source.getSeq()] = 0;
+//            this.residualGraph[dest.getSeq()][i] = 0;
+//        }
     }
 
     private void establishFeasibleFLow(Vertex source, Vertex dest) {
         this.removeVertex(source);
         this.removeVertex(dest);
 
-        for (int i = 0; i < adjMatrixSize; i++) {
-            // The the indexes are reversed because in the residual network there is no edge "s" -> start and end -> "t"
-            // because we add artificial edges with the desired capacity of the supply and demand.
-            // That is why these edges are with full capacity and we have only the reversed edges in the Residual network
-            this.residualGraph[i][source.getSeq()] = 0;
-            this.residualGraph[dest.getSeq()][i] = 0;
+        this.residualGraph1.remove(source);
+        this.residualGraph1.remove(dest);
+
+        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
+            List<ResidualEdge> toRemove = new ArrayList<>();
+            for(ResidualEdge e: entry.getValue()){
+                if(e.getFrom().equals(source) ||
+                        e.getTo().equals(source) ||
+                        e.getFrom().equals(dest) ||
+                        e.getTo().equals(dest)){
+                    toRemove.add(e);
+                }
+            }
+
+            for(ResidualEdge e: toRemove){
+                entry.getValue().remove(e);
+            }
         }
+
+//        }
+//        for (int i = 0; i < adjMatrixSize; i++) {
+//            // The the indexes are reversed because in the residual network there is no edge "s" -> start and end -> "t"
+//            // because we add artificial edges with the desired capacity of the supply and demand.
+//            // That is why these edges are with full capacity and we have only the reversed edges in the Residual network
+//            this.residualGraph[i][source.getSeq()] = 0;
+//            this.residualGraph[dest.getSeq()][i] = 0;
+//        }
     }
 
     private boolean BFS(Vertex from, Vertex to) {
@@ -338,7 +393,12 @@ public class Graph {
             Vertex curr = ((ArrayDeque<Vertex>) queue).removeFirst();
 
             for (Vertex v : this.listOfVertices) {
-                if (v.isVisited() == false && this.residualGraph[curr.getSeq()][v.getSeq()] > 0) {
+//                if (v.isVisited() == false && this.residualGraph[curr.getSeq()][v.getSeq()] > 0) {
+                // Creates fake flow for not connected vertices based on the BFS implementation
+                double flow =  residualGraph1.get(curr).stream()
+                        .filter(x -> x.getTo().equals(v))
+                        .findAny().orElse(new ResidualEdge(curr, v, -1, BigDecimal.ZERO)).getFlow();
+                if (v.isVisited() == false && flow > 0) {
                     ((ArrayDeque<Vertex>) queue).addLast(v);
                     v.addParent(curr);
                     v.setVisited(true);
@@ -356,7 +416,7 @@ public class Graph {
                     adjacencyMatrix[e.getFrom().getSeq()][e.getTo().getSeq()] = e.getCapacity();
                 } else {
                     this.adjMatrixSize = this.adjMatrixSize * 2;
-                    double [][] tmp = new double[adjMatrixSize][adjMatrixSize];
+                    double[][] tmp = new double[adjMatrixSize][adjMatrixSize];
                     copyMatrix(tmp, this.adjacencyMatrix);
                     this.adjacencyMatrix = new double[adjMatrixSize][adjMatrixSize];
                     copyMatrix(this.adjacencyMatrix, tmp);
@@ -381,7 +441,7 @@ public class Graph {
         System.out.println("The min const flow is: " + minCostFlow);
     }
 
-    public List<ResultEdge> getResult(){
+    public List<ResultEdge> getResult() {
         double minCostFlow = 0;
         List<ResultEdge> result = new ArrayList<>();
         for (Edge e : this.listOfEdges) {
@@ -411,7 +471,7 @@ public class Graph {
         }
     }
 
-    private void copyMatrix(double [][] dest, double [][] source){
+    private void copyMatrix(double[][] dest, double[][] source) {
         for (int i = 0; i < source.length; i++) {
             for (int j = 0; j < source[i].length; j++) {
                 dest[i][j] = source[i][j];
