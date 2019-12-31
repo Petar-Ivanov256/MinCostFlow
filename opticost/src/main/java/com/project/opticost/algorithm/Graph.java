@@ -122,12 +122,12 @@ public class Graph {
                 residualGraph1.put(entry.getKey(), new ArrayList<>());
             }
             for (Edge e : entry.getValue()) {
-                residualGraph1.get(entry.getKey()).add(new ResidualEdge(e.getFrom(), e.getTo(), e.getCapacity(), e.getPrice()));
+                residualGraph1.get(entry.getKey()).add(new ResidualEdge(e.getFrom(), e.getTo(), e.getCapacity(), e.getPrice(), false));
                 if(!residualGraph1.containsKey(e.getTo())){
                     residualGraph1.put(e.getTo(), new ArrayList<>());
-                    residualGraph1.get(e.getTo()).add(new ResidualEdge(e.getTo(), e.getFrom(), 0,  e.getPrice().negate()));
+                    residualGraph1.get(e.getTo()).add(new ResidualEdge(e.getTo(), e.getFrom(), 0,  e.getPrice().negate(), true));
                 }else{
-                    residualGraph1.get(e.getTo()).add(new ResidualEdge(e.getTo(), e.getFrom(), 0,  e.getPrice().negate()));
+                    residualGraph1.get(e.getTo()).add(new ResidualEdge(e.getTo(), e.getFrom(), 0,  e.getPrice().negate(), true));
                 }
             }
         }
@@ -228,16 +228,13 @@ public class Graph {
         start.setDistance(0);
 
         for (int i = 0; i < this.listOfVertices.size() - 1; i++) {
-            for (int u = 0; u < adjMatrixSize; u++) {
-                for (int v = 0; v < adjMatrixSize; v++) {
-                    if (this.residualGraph[u][v] > 0) {
-                        //TODO could lead to bugs because I am searching vertex from Seq
-                        int searchU = u;
-                        int searchV = v;
-                        Vertex uVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchU).findAny().orElse(null);
-                        Vertex vVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchV).findAny().orElse(null);
-                        if (vVertex.getDistance() > uVertex.getDistance() + this.priceGraph[u][v]) {
-                            vVertex.setDistance(uVertex.getDistance() + this.priceGraph[u][v]);
+            for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
+                Vertex uVertex = this.listOfVertices.stream().filter(x -> x.equals(entry.getKey())).findAny().orElse(null);
+                for(ResidualEdge e : entry.getValue()){
+                    if(e.getFlow() > 0){
+                        Vertex vVertex = this.listOfVertices.stream().filter(x -> x.equals(e.getTo())).findAny().orElse(null);
+                        if (vVertex.getDistance() > uVertex.getDistance() + e.getPrice().doubleValue()) {
+                            vVertex.setDistance(uVertex.getDistance() + e.getPrice().doubleValue());
                             vVertex.getParents().add(uVertex);
                             vVertex.setParent(uVertex);
 //                            parent[vVertex.getSeq()] = uVertex.getSeq();
@@ -245,22 +242,53 @@ public class Graph {
                     }
                 }
             }
+
+//            for (int u = 0; u < adjMatrixSize; u++) {
+//                for (int v = 0; v < adjMatrixSize; v++) {
+//                    if (this.residualGraph[u][v] > 0) {
+//                        //TODO could lead to bugs because I am searching vertex from Seq
+//                        int searchU = u;
+//                        int searchV = v;
+//                        Vertex uVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchU).findAny().orElse(null);
+//                        Vertex vVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchV).findAny().orElse(null);
+//                        if (vVertex.getDistance() > uVertex.getDistance() + this.priceGraph[u][v]) {
+//                            vVertex.setDistance(uVertex.getDistance() + this.priceGraph[u][v]);
+//                            vVertex.getParents().add(uVertex);
+//                            vVertex.setParent(uVertex);
+////                            parent[vVertex.getSeq()] = uVertex.getSeq();
+//                        }
+//                    }
+//                }
+//            }
         }
 
-        for (int u = 0; u < adjMatrixSize; u++) {
-            for (int v = 0; v < adjMatrixSize; v++) {
-                if (this.residualGraph[u][v] > 0) {
-                    int searchU = u;
-                    int searchV = v;
-                    Vertex uVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchU).findAny().orElse(null);
-                    Vertex vVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchV).findAny().orElse(null);
-                    if (vVertex.getDistance() > uVertex.getDistance() + this.priceGraph[u][v]) {
+        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
+            Vertex uVertex = this.listOfVertices.stream().filter(x -> x.equals(entry.getKey())).findAny().orElse(null);
+            for(ResidualEdge e : entry.getValue()){
+                if(e.getFlow() > 0){
+                    Vertex vVertex = this.listOfVertices.stream().filter(x -> x.equals(e.getTo())).findAny().orElse(null);
+                    if (vVertex.getDistance() > uVertex.getDistance() + e.getPrice().doubleValue()) {
                         vVertex.getParents().add(uVertex);
                         return vVertex;
                     }
                 }
             }
         }
+
+//        for (int u = 0; u < adjMatrixSize; u++) {
+//            for (int v = 0; v < adjMatrixSize; v++) {
+//                if (this.residualGraph[u][v] > 0) {
+//                    int searchU = u;
+//                    int searchV = v;
+//                    Vertex uVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchU).findAny().orElse(null);
+//                    Vertex vVertex = this.listOfVertices.stream().filter(x -> x.getSeq() == searchV).findAny().orElse(null);
+//                    if (vVertex.getDistance() > uVertex.getDistance() + this.priceGraph[u][v]) {
+//                        vVertex.getParents().add(uVertex);
+//                        return vVertex;
+//                    }
+//                }
+//            }
+//        }
 
         return null;
     }
@@ -298,9 +326,19 @@ public class Graph {
             List<Double> rFlows = new ArrayList<>();
             for (int i = 0; i < cycle.size(); i++) {
                 if (i == cycle.size() - 1) {
-                    rFlows.add(this.residualGraph[cycle.get(0).getSeq()][cycle.get(cycle.size() - 1).getSeq()]);
+                    double flow = residualGraph1.get(cycle.get(0)).stream()
+                            .filter(x -> x.getTo().equals(cycle.get(cycle.size() - 1)))
+                            .findAny().orElseThrow(NoSuchElementException::new).getFlow();
+                    rFlows.add(flow);
+//                    rFlows.add(this.residualGraph[cycle.get(0).getSeq()][cycle.get(cycle.size() - 1).getSeq()]);
                 } else {
-                    rFlows.add(this.residualGraph[cycle.get(i + 1).getSeq()][cycle.get(i).getSeq()]);
+                    // For the lambda
+                    int finalI = i;
+                    double flow = residualGraph1.get(cycle.get(i + 1)).stream()
+                            .filter(x -> x.getTo().equals(cycle.get(finalI)))
+                            .findAny().orElseThrow(NoSuchElementException::new).getFlow();
+                    rFlows.add(flow);
+//                    rFlows.add(this.residualGraph[cycle.get(i + 1).getSeq()][cycle.get(i).getSeq()]);
                 }
             }
 
@@ -308,11 +346,41 @@ public class Graph {
 
             for (int i = 0; i < cycle.size(); i++) {
                 if (i == cycle.size() - 1) {
-                    this.residualGraph[cycle.get(0).getSeq()][cycle.get(cycle.size() - 1).getSeq()] -= minRFlow;
-                    this.residualGraph[cycle.get(cycle.size() - 1).getSeq()][cycle.get(0).getSeq()] += minRFlow;
+                    double flowMinus = residualGraph1.get(cycle.get(0)).stream()
+                            .filter(x -> x.getTo().equals(cycle.get(cycle.size() - 1)))
+                            .findAny().orElseThrow(NoSuchElementException::new).getFlow();
+                    residualGraph1.get(cycle.get(0)).stream()
+                            .filter(x -> x.getTo().equals(cycle.get(cycle.size() - 1)))
+                            .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowMinus - minRFlow);
+
+                    double flowPlus = residualGraph1.get(cycle.get(cycle.size() - 1)).stream()
+                            .filter(x -> x.getTo().equals(cycle.get(0)))
+                            .findAny().orElseThrow(NoSuchElementException::new).getFlow();
+                    residualGraph1.get(cycle.get(cycle.size() - 1)).stream()
+                            .filter(x -> x.getTo().equals(cycle.get(0)))
+                            .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowPlus + minRFlow);
+
+
+//                    this.residualGraph[cycle.get(0).getSeq()][cycle.get(cycle.size() - 1).getSeq()] -= minRFlow;
+//                    this.residualGraph[cycle.get(cycle.size() - 1).getSeq()][cycle.get(0).getSeq()] += minRFlow;
                 } else {
-                    this.residualGraph[cycle.get(i + 1).getSeq()][cycle.get(i).getSeq()] -= minRFlow;
-                    this.residualGraph[cycle.get(i).getSeq()][cycle.get(i + 1).getSeq()] += minRFlow;
+                    int finalI = i;
+                    double flowMinus = residualGraph1.get(cycle.get(i + 1)).stream()
+                            .filter(x -> x.getTo().equals(cycle.get(finalI)))
+                            .findAny().orElseThrow(NoSuchElementException::new).getFlow();
+                    residualGraph1.get(cycle.get(i + 1)).stream()
+                            .filter(x -> x.getTo().equals(cycle.get(finalI)))
+                            .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowMinus - minRFlow);
+
+                    double flowPlus = residualGraph1.get(cycle.get(i)).stream()
+                            .filter(x -> x.getTo().equals(cycle.get(finalI + 1)))
+                            .findAny().orElseThrow(NoSuchElementException::new).getFlow();
+                    residualGraph1.get(cycle.get(i)).stream()
+                            .filter(x -> x.getTo().equals(cycle.get(finalI + 1)))
+                            .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowPlus + minRFlow);
+
+//                    this.residualGraph[cycle.get(i + 1).getSeq()][cycle.get(i).getSeq()] -= minRFlow;
+//                    this.residualGraph[cycle.get(i).getSeq()][cycle.get(i + 1).getSeq()] += minRFlow;
                 }
             }
 
@@ -397,7 +465,7 @@ public class Graph {
                 // Creates fake flow for not connected vertices based on the BFS implementation
                 double flow =  residualGraph1.get(curr).stream()
                         .filter(x -> x.getTo().equals(v))
-                        .findAny().orElse(new ResidualEdge(curr, v, -1, BigDecimal.ZERO)).getFlow();
+                        .findAny().orElse(new ResidualEdge(curr, v, -1, BigDecimal.ZERO, false)).getFlow();
                 if (v.isVisited() == false && flow > 0) {
                     ((ArrayDeque<Vertex>) queue).addLast(v);
                     v.addParent(curr);
@@ -429,14 +497,25 @@ public class Graph {
 
     public void printGraphMinCostFlow() {
         double minCostFlow = 0;
-        for (Edge e : this.listOfEdges) {
-            minCostFlow += this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] *
-                    this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()];
+//        for (Edge e : this.listOfEdges) {
+//            minCostFlow += this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] *
+//                    this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()];
+//
+//            System.out.println(e.getFrom() + " -> " + e.getTo() + " - Flow: " +
+//                    this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] +
+//                    " / Price: " + this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] *
+//                    this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()]);
+//        }
 
-            System.out.println(e.getFrom() + " -> " + e.getTo() + " - Flow: " +
-                    this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] +
-                    " / Price: " + this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] *
-                    this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()]);
+        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
+            for(ResidualEdge e : entry.getValue()){
+                if(e.isResult()){
+                    minCostFlow += e.getFlow() * e.getPrice().negate().doubleValue() ;
+
+                    System.out.println(e.getFrom() + " -> " + e.getTo() + " - Flow: " + e.getFlow() +
+                            " / Price: " + e.getFlow() * e.getPrice().negate().doubleValue());
+                }
+            }
         }
         System.out.println("The min const flow is: " + minCostFlow);
     }

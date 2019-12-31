@@ -8,14 +8,15 @@ public class ResidualEdge  {
     private Vertex to;
     private double flow;
     private BigDecimal price;
-//    private BigDecimal price;
+    private boolean result;
 
-    public ResidualEdge(Vertex from, Vertex to, double flow, BigDecimal price)
+    public ResidualEdge(Vertex from, Vertex to, double flow, BigDecimal price, boolean result)
     {
         this.from = from;
         this.to = to;
         this.flow = flow;
         this.price = price;
+        this.result = result;
     }
 
     public Vertex getFrom() {
@@ -48,6 +49,14 @@ public class ResidualEdge  {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public boolean isResult() {
+        return result;
+    }
+
+    public void setResult(boolean result) {
+        this.result = result;
     }
 
     @Override
