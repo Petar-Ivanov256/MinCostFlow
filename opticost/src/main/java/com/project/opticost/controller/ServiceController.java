@@ -180,12 +180,15 @@ public class ServiceController {
         graph.printGraphMinCostFlow();
 
         List<ResultEdge> redges = graph.getResult();
-        List<Road> edges = roadService.findAll();
         List<MinCostResultRequestEntity> result = new ArrayList<>();
         for (ResultEdge redge : redges) {
-            Road road = edges.stream().filter(x -> x.getFromCity().getCityName().equals(redge.getFromCity()) &&
-                                        x.getToCity().getCityName().equals(redge.getToCity())&&
-                                        x.getPlan().getPlanName().equals(plan.getPlanName())).findFirst().get();
+            City from = cityService.findByCityName(redge.getFromCity());
+            City to = cityService.findByCityName(redge.getToCity());
+            Road road = roadService.findRoadByFromCityAndToCityAndPlan(from, to, plan);
+            if(road == null){
+                // TODO fix the exception
+                throw new Exception("Not good");
+            }
             result.add(new MinCostResultRequestEntity(road, redge.getPrice(), redge.getFlow()));
         }
 

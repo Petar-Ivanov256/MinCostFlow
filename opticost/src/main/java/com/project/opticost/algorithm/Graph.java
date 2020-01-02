@@ -512,7 +512,7 @@ public class Graph {
                 if(e.isResult()){
                     minCostFlow += e.getFlow() * e.getPrice().negate().doubleValue() ;
 
-                    System.out.println(e.getFrom() + " -> " + e.getTo() + " - Flow: " + e.getFlow() +
+                    System.out.println(e.getTo() + " -> " + e.getFrom() + " - Flow: " + e.getFlow() +
                             " / Price: " + e.getFlow() * e.getPrice().negate().doubleValue());
                 }
             }
@@ -523,14 +523,25 @@ public class Graph {
     public List<ResultEdge> getResult() {
         double minCostFlow = 0;
         List<ResultEdge> result = new ArrayList<>();
-        for (Edge e : this.listOfEdges) {
-            minCostFlow += this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] *
-                    this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()];
-            BigDecimal price = BigDecimal.valueOf(this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] *
-                    this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()]);
-            double flow = this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()];
+//        for (Edge e : this.listOfEdges) {
+//            minCostFlow += this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] *
+//                    this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()];
+//            BigDecimal price = BigDecimal.valueOf(this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()] *
+//                    this.priceGraph[e.getFrom().getSeq()][e.getTo().getSeq()]);
+//            double flow = this.residualGraph[e.getTo().getSeq()][e.getFrom().getSeq()];
+//
+//            result.add(new ResultEdge(e.getFrom().getName(), e.getTo().getName(), price, flow));
+//        }
 
-            result.add(new ResultEdge(e.getFrom().getName(), e.getTo().getName(), price, flow));
+        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
+            for(ResidualEdge e : entry.getValue()){
+                if(e.isResult()){
+                    minCostFlow += e.getFlow() * e.getPrice().negate().doubleValue() ;
+                    BigDecimal price =  BigDecimal.valueOf(e.getFlow() * e.getPrice().negate().doubleValue());
+                    double flow = e.getFlow();
+                    result.add(new ResultEdge(e.getTo().getName(), e.getFrom().getName(), price, flow));
+                }
+            }
         }
 
         this.minCostFlow = minCostFlow;

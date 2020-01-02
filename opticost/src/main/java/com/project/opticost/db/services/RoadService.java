@@ -60,4 +60,8 @@ public class RoadService extends AbstractService<Road, Long> {
 
         return results;
     }
+
+    public Road findRoadByFromCityAndToCityAndPlan(City fromCity, City toCity, Plan plan){
+        return roadsRepo.findRoadByFromCityAndToCityAndPlan(fromCity, toCity, plan);
+    }
 }

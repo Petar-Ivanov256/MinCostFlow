@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 public interface RoadRepository extends JpaRepository<Road, Long> {
-    Road findRoadByFromCityAndToCityAndPlan(City fromCity, City toCity, Plan plan);
+    public Road findRoadByFromCityAndToCityAndPlan(City fromCity, City toCity, Plan plan);
     List<Road> findRoadsByPlan(Plan plan);
 }
