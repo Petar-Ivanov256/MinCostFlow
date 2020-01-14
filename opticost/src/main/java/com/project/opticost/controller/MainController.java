@@ -12,4 +12,9 @@ public class MainController {
     public String showMainScreen(Model model) {
         return "index";
     }
+
+    @RequestMapping(value = "/d3", method = RequestMethod.GET)
+    public String playScreen(Model model) {
+        return "opticost";
+    }
 }
