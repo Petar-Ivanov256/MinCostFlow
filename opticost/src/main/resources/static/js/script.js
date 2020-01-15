@@ -76,49 +76,6 @@ function init() {
             }
         }
     );
-    //
-    // // Initialise sigma:
-    // var s = new sigma(
-    //     {
-    //         renderer: {
-    //             container: document.getElementById('sigma-container'),
-    //             // type: 'canvas'
-    //             type: sigma.renderers.canvas
-    //         },
-    //         settings: {
-    //             edgeLabelSize: 'proportional',
-    //             minArrowSize: 10,
-    //             sideMargin: 0.1
-    //         }
-    //     }
-    // );
-
-// Create a graph object
-//     var graph = {
-//         nodes: [
-//             { id: "n0", label: "A node", x: 0, y: 0, size: 3, color: '#008cc2' },
-//             { id: "n1", label: "Another node", x: 3, y: 1, size: 2, color: '#008cc2' },
-//             { id: "n2", label: "And a last one", x: 1, y: 3, size: 1, color: '#E57821' }
-//         ],
-//         edges: [
-//             { id: "e0", source: "n0", target: "n1", color: '#282c34', type:'curvedArrow', count:0, size:0.5 },
-//             { id: "e1", source: "n1", target: "n2", color: '#282c34', type:'curvedArrow', count:0, size:1},
-//             { id: "e2", source: "n2", target: "n0", color: '#FF0000', type:'curvedArrow', count:0, size:2},
-//             { id: "e3", source: "n2", target: "n1", color: '#282c34', type:'curvedArrow', count:0, size:2},
-//             { id: "e4", source: "n2", target: "n1", color: '#282c34', type:'curvedArrow', count:1, size:2},
-//             { id: "e5", source: "n2", target: "n2", color: '#282c34', type:'curvedArrow', count:0, size:2},
-//             { id: "e6", source: "n2", target: "n1", color: '#282c34', type:'curvedArrow', count:2, size:2}
-//         ]
-//     }
-//
-// // load the graph
-//     s.graph.read(graph);
-// // draw the graph
-//     s.refresh();
-//     sigma.plugins.relativeSize(s, 1);
-// // launch force-atlas for 5sec
-//     s.startForceAtlas2();
-//     window.setTimeout(function() {s.killForceAtlas2()}, 2000);
 }
 
 function editCityRow() {
@@ -499,59 +456,35 @@ function saveRoads(updateRoadsTable) {
 }
 
 function drawCities(cities) {
-
-    let nodes = cities.map(function (x) {
+    graph['nodes'] = cities.map(function (x) {
         return {id: x.id, label: x.cityName, x: x.xCoord, y: x.yCoord, size: nodeSize, color: nodeColor}
     });
 
-
-// Create a graph object
-    graph['nodes'] = nodes;
     if ('edges' in graph) {
         delete graph['edges']
         // TODO clear edges table because it is wrong any more
     }
 
     s.graph.clear();
-// Load the graph in sigma
     s.graph.read(graph);
-// Ask sigma to draw it
     s.refresh();
 
     console.log("Drawing Vertices")
 }
 
 function drawRoads(roads) {
-    let edges = roads.map(function (x) {
+    s.graph.clear();
+    graph['edges'] = roads.map(function (x) {
         return {id: x.id, source: x.fromCity.id, target: x.toCity.id, color: '#282c34', type: 'curvedArrow', size: 0.5}
     });
 
-// Create a graph object
-    s.graph.clear();
-    graph['edges'] = edges;
-
-// Load the graph in sigma
-    //this gets rid of all the ndoes and edges
-    //this gets rid of any methods you've attached to s.
-    // s.graph.kill();
-
     s.graph.read(graph);
-// Ask sigma to draw it
     s.refresh();
-
-    // s.startForceAtlas2();
-    // window.setTimeout(function () {
-    //     s.killForceAtlas2()
-    // }, 3000);
 
     console.log("Drawing Edges")
 }
 
 function drawRoadsAndCities(data, isResult) {
-    // let nodes = cities.map(function (x) {
-    //     return {id: x.id, label: x.cityName, x: x.xCoord, y: x.yCoord, size: nodeSize, color: nodeColor}
-    // });
-
     let nodes = [];
     for (const x of data) {
         let fromCity = null;
@@ -612,25 +545,11 @@ function drawRoadsAndCities(data, isResult) {
         }
     });
 
-// Create a graph object
     graph['nodes'] = nodes;
     graph['edges'] = edges;
-
-// Load the graph in sigma
-    //this gets rid of all the ndoes and edges
     s.graph.clear();
-    //this gets rid of any methods you've attached to s.
-    // s.graph.kill();
-
     s.graph.read(graph);
-    // Put the startForceAtlas2 (redrawing here) it wont be shown how it rearranges the nodes
-// Ask sigma to draw it
     s.refresh();
-
-    // s.startForceAtlas2();
-    // window.setTimeout(function () {
-    //     s.killForceAtlas2()
-    // }, 3000);
 
     console.log("Drawing Edges")
 }
@@ -695,8 +614,6 @@ function updateCitiesDropDown(elemetSelector, selectedElement) {
 
     });
 
-    // $("#fromCity").html(citiesHtml);
-    // $("#toCity").html(citiesHtml);
     $(elemetSelector).html(citiesHtml);
 }
 
@@ -760,6 +677,9 @@ function savePlan() {
                     "</tr>"
                 );
 
+                $('#plan-name').empty();
+                $('#plan-name').append($('<option>', {value: 'new', text: 'New Plan'}));
+                showPlans();
                 $(".editPlan").on('click', editPlanRow);
                 $(".removePlan").on('click', removePlanRow);
             },
@@ -811,6 +731,7 @@ function onPlanChange(fromFile) {
     // TODO have bugs by changing the plan clear them
     if (selectedPlan.planName !== selectedPlanName) {
         s.graph.clear();
+        s.refresh();
         $('#showCities').empty();
         $('#showRoads').empty();
         addedRoads = [];
@@ -820,10 +741,10 @@ function onPlanChange(fromFile) {
         if (selectedPlanName === 'new') {
             $("#verticesEdges").hide();
             $(".plan-input").show();
-            s.graph.clear();
             $('#showCities').empty();
             $('#showRoads').empty();
             $('#showPlan').empty();
+            $('#planName').val("");
             addedRoads = [];
             addedCities = [];
             cityCnt = 0;
