@@ -123,10 +123,9 @@ function init() {
 
 function editCityRow() {
     citiesSaved = false;
-    // TODO by editing the City name, it is not saved
     let element = $(this).parent().parent();
     let index = element.get(0).id.split("-")[1];
-    element.children().eq(0).html("<input type='text' id='cityName-" + index + "' class='form-control' value='" + addedCities[index].cityName + "'>");
+    element.children().eq(0).html("<input type='text' id='cityName-" + index + "' class='form-control' value='" + addedCities[index].cityName + "' readonly>");
     element.children().eq(1).html("<input type='number' id='xCoord-" + index + "' class='form-control' value='" + addedCities[index].xCoord + "'>");
     element.children().eq(2).html("<input type='number' id='yCoord-" + index + "' class='form-control' value='" + addedCities[index].yCoord + "'>");
     element.children().eq(3).html(
@@ -151,10 +150,12 @@ function editCityRow() {
             updateCitiesDropDown("#toCity");
             updateCitiesDropDown("#fromCityRun");
             updateCitiesDropDown("#toCityRun");
-
+            // Unbind the events before removing the element in order to avoid replication of event listeners
+            $(".editCity").off();
             element.empty();
             element.html(drawCityRow(cityName, xCoord, yCoord));
 
+            $(".editCity").on('click', editCityRow);
             $(".removeCity").on('click', removeCityRow);
             $(this).off();
         } else {
@@ -163,9 +164,12 @@ function editCityRow() {
                 message: "Can't add the same city or different city with the same coordinates"
             }, notifySettings('danger'));
 
+            // Unbind the events before removing the element in order to avoid replication of event listeners
+            $(".editCity").off();
             element.empty();
             element.html(drawCityRow(addedCities[index].cityName, addedCities[index].xCoord, addedCities[index].yCoord));
 
+            $(".editCity").on('click', editCityRow);
             $(".removeCity").on('click', removeCityRow);
             $(this).off();
         }
@@ -293,6 +297,7 @@ function addCity(cityData) {
             drawCityRow(cityName, xCoord, yCoord) +
             "</tr>"
         );
+        $(".editCity").on('click', editCityRow);
         $(".removeCity").on('click', removeCityRow);
         cityCnt = cityCnt + 1;
         addedCities.push(value);
@@ -319,8 +324,8 @@ function drawCityRow(cityName, xCoord, yCoord) {
         yCoord +
         "</td>" +
         "<td class='col-md-3'>" +
-        // "<button type='button' class='btn btn-info btn-sm editCity'>" +
-        // "<span class='glyphicon glyphicon-edit'></span>" +
+        "<button type='button' class='btn btn-info btn-sm editCity'>" +
+        "<span class='glyphicon glyphicon-edit'></span>" +
         "</button>" +
         "<button type='button' class='btn btn-danger btn-sm removeCity'>" +
         "<span class='glyphicon glyphicon-remove'></span>" +
@@ -534,10 +539,10 @@ function drawRoads(roads) {
 // Ask sigma to draw it
     s.refresh();
 
-    s.startForceAtlas2();
-    window.setTimeout(function () {
-        s.killForceAtlas2()
-    }, 3000);
+    // s.startForceAtlas2();
+    // window.setTimeout(function () {
+    //     s.killForceAtlas2()
+    // }, 3000);
 
     console.log("Drawing Edges")
 }
