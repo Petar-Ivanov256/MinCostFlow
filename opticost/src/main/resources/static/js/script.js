@@ -63,16 +63,15 @@ function init() {
                 type: 'canvas'
             },
             settings: {
-                minEdgeSize: 0.1,
-                maxEdgeSize: 2,
-                minNodeSize: 10,
-                maxNodeSize: 20,
-                maxArrowSize: 20,
-                minArrowSize: 10,
+                minEdgeSize: 2,
+                maxEdgeSize: 4,
+                minNodeSize: 20,
+                maxNodeSize: 25,
+                maxArrowSize: 6,
+                minArrowSize: 8,
+                defaultLabelSize: 17,
                 edgeLabelSize: 'proportional',
-                defaultEdgeLabelSize: 15,
-                sideMargin: 0.1,
-                // autoRescale: false
+                sideMargin: 50,
             }
         }
     );
