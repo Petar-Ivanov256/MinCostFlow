@@ -70,8 +70,9 @@ function init() {
                 maxArrowSize: 6,
                 minArrowSize: 8,
                 defaultLabelSize: 17,
-                edgeLabelSize: 'proportional',
                 sideMargin: 50,
+                edgeLabelSize: 'proportional',
+                edgeLabelSizePowRatio: 1.5
             }
         }
     );
@@ -210,8 +211,6 @@ function removeRoadRow() {
 }
 
 function addCity(cityData) {
-    citiesSaved = false;
-
     let cityName = null;
     let xCoord = null;
     let yCoord = null;
@@ -219,6 +218,7 @@ function addCity(cityData) {
 
     // Check if the function was called from event handler (UI button)
     if (cityData.target) {
+        citiesSaved = false;
         cityName = $("#inputCityName").val();
         xCoord = $("#inputX").val();
         yCoord = $("#inputY").val();
