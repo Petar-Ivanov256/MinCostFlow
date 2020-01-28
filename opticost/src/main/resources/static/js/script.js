@@ -522,12 +522,19 @@ function drawRoadsAndCities(data, isResult) {
     }
 
     let edges = data.map(function (x) {
+        let edgeColor = '#282c34';
         if (isResult) {
+            if(x.flow > 0){
+                edgeColor = '#33cc33';
+            } else if(x.flow === 0){
+                edgeColor = '#ff0000';
+            }
+
             return {
                 id: x.edge.id,
                 source: x.edge.fromCity.id,
                 target: x.edge.toCity.id,
-                color: '#282c34',
+                color: edgeColor,
                 type: 'curvedArrow',
                 size: 0.5,
                 label: x.flow + " flow/ " + x.price + " price"
@@ -537,7 +544,7 @@ function drawRoadsAndCities(data, isResult) {
                 id: x.id,
                 source: x.fromCity.id,
                 target: x.toCity.id,
-                color: '#282c34',
+                color: edgeColor,
                 type: 'curvedArrow',
                 size: 0.5
             }
