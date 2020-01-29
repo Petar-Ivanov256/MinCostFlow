@@ -5,7 +5,6 @@ import com.project.opticost.db.model.Plan;
 import com.project.opticost.db.model.Road;
 import com.project.opticost.db.repo.RoadRepository;
 import com.project.opticost.db.services.interfaces.AbstractService;
-import com.project.opticost.utils.exceptions.RoadsWithNotMatchingPlanException;
 import com.project.opticost.utils.requests.helpers.RoadRequestEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -31,7 +30,7 @@ public class RoadService extends AbstractService<Road, Long> {
         return roadsRepo;
     }
 
-    public List<Road> persistRoads(List<RoadRequestEntity> roads, Long planId) throws RoadsWithNotMatchingPlanException {
+    public List<Road> persistRoads(List<RoadRequestEntity> roads, Long planId) {
         List<Road> extractedRoads = extractRoads(roads);
         Plan plan = planService.getOne(planId);
         roadsRepo.deleteAll(roadsRepo.findRoadsByPlan(plan));

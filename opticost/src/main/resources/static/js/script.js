@@ -653,6 +653,11 @@ function runMulticost() {
                 drawRoadsAndCities(data, true)
             },
             error: function (data) {
+                if(data.responseJSON.trace.includes('NoFeasibleSolutionException')){
+                    $.notify({
+                        message: data.responseJSON.message
+                    }, notifySettings('danger'));
+                }
                 console.log("Error", data);
             }
         });
@@ -854,7 +859,6 @@ function editPlanRow() {
                 error: function (data) {
                     console.log("Error", data);
                     $.notify({
-                        // options
                         message: "Something went wrong, can't update plan"
                     }, notifySettings('danger'));
 

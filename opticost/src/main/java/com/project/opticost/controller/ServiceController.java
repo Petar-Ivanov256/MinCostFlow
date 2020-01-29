@@ -11,7 +11,6 @@ import com.project.opticost.db.services.CityService;
 import com.project.opticost.db.services.PlanService;
 import com.project.opticost.db.services.RoadService;
 import com.project.opticost.utils.exceptions.PlanNotInDataBaseException;
-import com.project.opticost.utils.exceptions.RoadsWithNotMatchingPlanException;
 import com.project.opticost.utils.requests.helpers.MinCostResultRequestEntity;
 import com.project.opticost.utils.requests.helpers.MultiCostRequestEntity;
 import com.project.opticost.utils.requests.helpers.PlanRequstEntity;
@@ -54,7 +53,7 @@ public class ServiceController {
     }
 
     @RequestMapping(value = "/save-roads/{planId}", method = RequestMethod.POST)
-    public List<Road> saveRoads(@RequestBody List<RoadRequestEntity> roads, @PathVariable("planId") Long planId) throws RoadsWithNotMatchingPlanException {
+    public List<Road> saveRoads(@RequestBody List<RoadRequestEntity> roads, @PathVariable("planId") Long planId) {
         return roadService.persistRoads(roads, planId);
     }
 

@@ -1,5 +1,7 @@
 package com.project.opticost.algorithm;
 
+import com.project.opticost.utils.exceptions.NoFeasibleSolutionException;
+
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -306,8 +308,7 @@ public class Graph {
         int maxFlow = (int) this.maxFlow(source, dest);
 
         if (maxFlow < cargo) {
-            //TODO make custom exception
-            throw new Exception("There is no feasible solution for this supply: " + cargo);
+            throw new NoFeasibleSolutionException("There is no feasible solution for the supply: " + cargo);
         } else {
             this.establishFeasibleFLow(source, dest);
             this.generatePriceGraph();
