@@ -45,8 +45,8 @@ public class CityService extends AbstractService<City,Long> {
             result = new City();
 
             result.setCityName(cityName);
-            result.setxCoord(maxX + 1);
-            result.setyCoord(maxY + 1);
+            result.setxCoord(maxX + maxY/2);
+            result.setyCoord(maxY + maxX/2);
             result = citiesRepo.saveAndFlush(result);
         }
 

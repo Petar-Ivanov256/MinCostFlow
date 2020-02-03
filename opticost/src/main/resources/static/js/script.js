@@ -146,8 +146,8 @@ function editRoadRow() {
     element.children().eq(1).html("<select class='form-control' id='toCity-" + index + "'></select>");
     updateCitiesDropDown("#toCity-" + index, valBeforeEditTo);
 
-    element.children().eq(2).html("<input type='number' id='capacity-" + index + "' class='form-control' value='" + addedRoads[index].capacity + "'>");
-    element.children().eq(3).html("<input type='number' id='price-" + index + "' class='form-control' value='" + addedRoads[index].price + "'>");
+    element.children().eq(2).html("<input type='number' min='0' id='capacity-" + index + "' class='form-control' value='" + addedRoads[index].capacity + "'>");
+    element.children().eq(3).html("<input type='number' min='0' id='price-" + index + "' class='form-control' value='" + addedRoads[index].price + "'>");
     element.children().eq(4).html(
         "<button type='button' id='saveRoad-" + index + "' class='btn btn-success btn-sm'>" +
         "<span class='glyphicon glyphicon-floppy-saved'></span>" +

@@ -65,11 +65,11 @@
                     </div>
                     <div class="form-group col-md-2">
                         <label for="inputCap">Capacity</label>
-                        <input type="number" class="form-control" id="inputCap">
+                        <input type="number" min="0" class="form-control" id="inputCap">
                     </div>
                     <div class="form-group col-md-2">
                         <label for="inputPrice">Price</label>
-                        <input type="number" class="form-control" id="inputPrice">
+                        <input type="number" min="0" class="form-control" id="inputPrice">
                     </div>
                     <button class="btn btn-primary add" id="addRoad">Add</button>
                 </div>
@@ -107,7 +107,7 @@
                 </div>
                 <div class="form-group col-md-3">
                     <label for="inputCap">Capacity</label>
-                    <input type="number" class="form-control" id="cargo">
+                    <input type="number" min="0" class="form-control" id="cargo">
                 </div>
             </div>
             <button class="btn btn-primary save" id="runMulticost">Run multicost</button>
