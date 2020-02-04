@@ -10,7 +10,9 @@ import com.project.opticost.db.model.Road;
 import com.project.opticost.db.services.CityService;
 import com.project.opticost.db.services.PlanService;
 import com.project.opticost.db.services.RoadService;
+import com.project.opticost.utils.exceptions.CitiesNotInPlanException;
 import com.project.opticost.utils.exceptions.PlanNotInDataBaseException;
+import com.project.opticost.utils.exceptions.ResultRoadNotFoundInTheDatabaseException;
 import com.project.opticost.utils.requests.helpers.MinCostResultRequestEntity;
 import com.project.opticost.utils.requests.helpers.MultiCostRequestEntity;
 import com.project.opticost.utils.requests.helpers.PlanRequstEntity;
@@ -147,7 +149,7 @@ public class ServiceController {
                 fromCity = new Vertex(run.getFromCity());
                 toCity = new Vertex(run.getToCity());
             }else {
-                throw new RuntimeException("The request is corrupted used cities are not in the Plan");
+                throw new CitiesNotInPlanException("Corrupted request: used cities are not in the Plan");
             }
 
             for (Road road : plan.getRoads()) {
@@ -185,8 +187,7 @@ public class ServiceController {
             City to = cityService.findByCityName(redge.getToCity());
             Road road = roadService.findRoadByFromCityAndToCityAndPlan(from, to, plan);
             if(road == null){
-                // TODO fix the exception
-                throw new Exception("Not good");
+                throw new ResultRoadNotFoundInTheDatabaseException("Corrupted result: mismatch between the database and the result");
             }
             result.add(new MinCostResultRequestEntity(road, redge.getPrice(), redge.getFlow()));
         }
