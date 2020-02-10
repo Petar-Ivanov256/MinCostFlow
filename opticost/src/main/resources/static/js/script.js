@@ -120,7 +120,7 @@ function editCityRow() {
                 // options
                 message: "Can't add the same city or different city with the same coordinates"
             }, notifySettings('danger'));
-
+            citiesSaved = true;
             // Unbind the events before removing the element in order to avoid replication of event listeners
             $(".editCity").off();
             element.empty();
@@ -239,8 +239,8 @@ function addCity(cityData) {
 
     let value = {
         'cityName': cityName,
-        'xCoord': xCoord,
-        'yCoord': yCoord,
+        'xCoord': parseInt(xCoord, 10),
+        'yCoord': parseInt(yCoord,10),
         'deleted': false
     };
 
@@ -266,6 +266,7 @@ function addCity(cityData) {
             // options
             message: "Can't add the same city or different city with the same coordinates"
         }, notifySettings('danger'));
+        citiesSaved = true;
     }
 }
 
