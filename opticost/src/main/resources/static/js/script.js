@@ -1,7 +1,5 @@
 var addedCities = [];
 var addedRoads = [];
-// Probably obsolete
-// var plan = {};
 var plans = [];
 var selectedPlan = {};
 var s = null;
@@ -155,27 +153,36 @@ function editRoadRow() {
     );
 
     $("#saveRoad-" + index).on('click', function () {
-        let fromCity = $("#fromCity-" + index).val();
-        let toCity = $("#toCity-" + index).val();
-        let cap = $("#capacity-" + index).val();
-        let price = $("#price-" + index).val();
 
-        addedRoads[index].fromCity = fromCity;
-        addedRoads[index].toCity = toCity;
-        addedRoads[index].capacity = cap;
-        addedRoads[index].price = price;
+        if (addedRoads.filter(x => x.fromCity === fromCity && x.toCity === toCity && x.deleted === false).length === 0) {
+            let fromCity = $("#fromCity-" + index).val();
+            let toCity = $("#toCity-" + index).val();
+            let cap = $("#capacity-" + index).val();
+            let price = $("#price-" + index).val();
 
-        updateCitiesDropDown("#fromCityRun");
-        updateCitiesDropDown("#toCityRun");
+            addedRoads[index].fromCity = fromCity;
+            addedRoads[index].toCity = toCity;
+            addedRoads[index].capacity = cap;
+            addedRoads[index].price = price;
 
-        // Unbind the events before removing the element in order to avoid replication of event listeners
-        $(".editRoad").off();
-        element.empty();
-        element.html(drawRoadRow(fromCity, toCity, cap, price));
+            updateCitiesDropDown("#fromCityRun");
+            updateCitiesDropDown("#toCityRun");
 
-        $(".editRoad").on('click', editRoadRow);
-        $(".removeRoad").on('click', removeRoadRow);
-        $(this).off();
+            // Unbind the events before removing the element in order to avoid replication of event listeners
+            $(".editRoad").off();
+            element.empty();
+            element.html(drawRoadRow(fromCity, toCity, cap, price));
+
+            $(".editRoad").on('click', editRoadRow);
+            $(".removeRoad").on('click', removeRoadRow);
+            $(this).off();
+        } else {
+            $.notify({
+                // options
+                message: "The road already exists. Please update the existing one."
+            }, notifySettings('danger'));
+            citiesSaved = true;
+        }
     });
 }
 
@@ -319,26 +326,36 @@ function addRoad(roadData) {
         price = roadData.price;
     }
 
-    let previousHtml = showTable.html();
-    showTable.html(
-        previousHtml +
-        "<tr id='road-" + roadCnt + "'>" +
-        drawRoadRow(fromCity, toCity, cap, price) +
-        "</tr>"
-    );
-    $(".editRoad").on('click', editRoadRow);
-    $(".removeRoad").on('click', removeRoadRow);
-    roadCnt = roadCnt + 1;
-    addedRoads.push(
-        {
-            'fromCity': fromCity,
-            'toCity': toCity,
-            'capacity': cap,
-            'price': price,
-            'deleted': false,
-            'planName': selectedPlan.planName
-        }
-    );
+
+    if (addedRoads.filter(x => x.fromCity === fromCity && x.toCity === toCity && x.deleted === false).length === 0) {
+        let previousHtml = showTable.html();
+        showTable.html(
+            previousHtml +
+            "<tr id='road-" + roadCnt + "'>" +
+            drawRoadRow(fromCity, toCity, cap, price) +
+            "</tr>"
+        );
+        $(".editRoad").on('click', editRoadRow);
+        $(".removeRoad").on('click', removeRoadRow);
+        roadCnt = roadCnt + 1;
+        addedRoads.push(
+            {
+                'fromCity': fromCity,
+                'toCity': toCity,
+                'capacity': cap,
+                'price': price,
+                'deleted': false,
+                'planName': selectedPlan.planName
+            }
+        );
+    } else {
+        $.notify({
+            // options
+            message: "The road already exists. Please update the existing one."
+        }, notifySettings('danger'));
+        citiesSaved = true;
+    }
+
 }
 
 function persistRoadTable(roads) {
