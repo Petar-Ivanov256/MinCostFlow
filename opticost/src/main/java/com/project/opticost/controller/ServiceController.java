@@ -54,7 +54,8 @@ public class ServiceController {
     }
 
     @RequestMapping(value = "/save-roads/{planId}", method = RequestMethod.POST)
-    public List<Road> saveRoads(@RequestBody List<RoadRequestEntity> roads, @PathVariable("planId") Long planId) {
+    public List<Road> saveRoads(@RequestBody List<RoadRequestEntity> roads, @PathVariable("planId") Long planId) throws RoadsWithTheSameFromToException {
+        roadService.validate(roads);
         return roadService.persistRoads(roads, planId);
     }
 

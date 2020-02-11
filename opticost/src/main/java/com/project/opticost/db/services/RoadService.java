@@ -5,6 +5,7 @@ import com.project.opticost.db.model.Plan;
 import com.project.opticost.db.model.Road;
 import com.project.opticost.db.repo.RoadRepository;
 import com.project.opticost.db.services.interfaces.AbstractService;
+import com.project.opticost.utils.exceptions.RoadsWithTheSameFromToException;
 import com.project.opticost.utils.requests.helpers.RoadRequestEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -60,7 +61,24 @@ public class RoadService extends AbstractService<Road, Long> {
         return results;
     }
 
-    public Road findRoadByFromCityAndToCityAndPlan(City fromCity, City toCity, Plan plan){
+    public Road findRoadByFromCityAndToCityAndPlan(City fromCity, City toCity, Plan plan) {
         return roadsRepo.findRoadByFromCityAndToCityAndPlan(fromCity, toCity, plan);
     }
+
+    public void validate(List<RoadRequestEntity> roads) throws RoadsWithTheSameFromToException {
+        for (int i = 0; i < roads.size(); i++) {
+            RoadRequestEntity currRoad = roads.get(i);
+            for (int j = 0; j < roads.size(); j++) {
+                if (i == j) {
+                    continue;
+                }
+                RoadRequestEntity checkRoad = roads.get(j);
+                if(checkRoad.getFromCity().equals(currRoad.getFromCity()) && checkRoad.getToCity().equals(currRoad.getToCity())){
+                    throw new RoadsWithTheSameFromToException("There should not be roads with same start and destination");
+                }
+            }
+
+        }
+    }
+
 }

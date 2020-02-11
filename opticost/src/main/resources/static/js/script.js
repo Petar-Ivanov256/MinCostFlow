@@ -76,6 +76,20 @@ function init() {
     );
 }
 
+function validateRoad(fromName, toName, index) {
+    for(let i = 0; i < addedRoads.length; i++){
+        if(i === index || addedRoads[i].deleted === true){
+            continue;
+        }
+
+        if(addedRoads[i].fromCity === fromName && addedRoads[i].toCity === toName){
+            return false
+        }
+    }
+    return true;
+}
+
+
 function validateCity(cityName, xCoord, yCoord, index) {
     for(let i = 0; i < addedCities.length; i++){
         if(i === index || addedCities[i].deleted === true){
@@ -147,7 +161,7 @@ function editCityRow() {
 
 function editRoadRow() {
     let element = $(this).parent().parent();
-    let index = element.get(0).id.split("-")[1];
+    let index = parseInt(element.get(0).id.split("-")[1], 10);
 
     let valBeforeEditFrom = element.children().eq(0).text();
     element.children().eq(0).html("<select class='form-control' id='fromCity-" + index + "'></select>");
@@ -166,14 +180,12 @@ function editRoadRow() {
     );
 
     $("#saveRoad-" + index).on('click', function () {
-
-
         let fromCity = $("#fromCity-" + index).val();
         let toCity = $("#toCity-" + index).val();
         let cap = parseInt($("#capacity-" + index).val(), 10);
         let price = parseFloat($("#price-" + index).val());
 
-        // if (addedRoads.filter(x => x.fromCity === fromCity && x.toCity === toCity && x.deleted === false).length === 0) {
+        if (validateRoad(fromCity, toCity, index)) {
 
             addedRoads[index].fromCity = fromCity;
             addedRoads[index].toCity = toCity;
@@ -191,13 +203,21 @@ function editRoadRow() {
             $(".editRoad").on('click', editRoadRow);
             $(".removeRoad").on('click', removeRoadRow);
             $(this).off();
-        // } else {
-        //     $.notify({
-        //         // options
-        //         message: "The road already exists. Please update the existing one."
-        //     }, notifySettings('danger'));
-        //     citiesSaved = true;
-        // }
+        } else {
+            $.notify({
+                // options
+                message: "The road already exists. Please update the existing one."
+            }, notifySettings('danger'));
+
+            // Unbind the events before removing the element in order to avoid replication of event listeners
+            $(".editRoad").off();
+            element.empty();
+            element.html(drawRoadRow(addedRoads[index].fromCity, addedRoads[index].toCity, addedRoads[index].capacity, addedRoads[index].price));
+
+            $(".editRoad").on('click', editRoadRow);
+            $(".removeRoad").on('click', removeRoadRow);
+            $(this).off();
+        }
     });
 }
 
