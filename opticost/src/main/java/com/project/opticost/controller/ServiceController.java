@@ -10,9 +10,7 @@ import com.project.opticost.db.model.Road;
 import com.project.opticost.db.services.CityService;
 import com.project.opticost.db.services.PlanService;
 import com.project.opticost.db.services.RoadService;
-import com.project.opticost.utils.exceptions.CitiesNotInPlanException;
-import com.project.opticost.utils.exceptions.PlanNotInDataBaseException;
-import com.project.opticost.utils.exceptions.ResultRoadNotFoundInTheDatabaseException;
+import com.project.opticost.utils.exceptions.*;
 import com.project.opticost.utils.requests.helpers.MinCostResultRequestEntity;
 import com.project.opticost.utils.requests.helpers.MultiCostRequestEntity;
 import com.project.opticost.utils.requests.helpers.PlanRequstEntity;
@@ -44,7 +42,8 @@ public class ServiceController {
     PlanService planService;
 
     @RequestMapping(value = "/save-cities", method = RequestMethod.POST)
-    public List<City> saveCities(@RequestBody List<City> cities) {
+    public List<City> saveCities(@RequestBody List<City> cities) throws CitiesWithTheSameCoordinatesException, CitiesWithTheSameNameException {
+        cityService.validate(cities);
         for (City city : cities) {
             City dbCity = cityService.findByCityName(city.getCityName());
             if (dbCity != null) {

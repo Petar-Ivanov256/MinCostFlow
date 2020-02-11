@@ -76,10 +76,24 @@ function init() {
     );
 }
 
+function validateCity(cityName, xCoord, yCoord, index) {
+    for(let i = 0; i < addedCities.length; i++){
+        if(i === index || addedCities[i].deleted === true){
+            continue;
+        }
+
+        if((addedCities[i].xCoord === xCoord && addedCities[i].yCoord === yCoord) ||
+            addedCities[i].cityName === cityName){
+            return false
+        }
+    }
+    return true;
+}
+
 function editCityRow() {
     citiesSaved = false;
     let element = $(this).parent().parent();
-    let index = element.get(0).id.split("-")[1];
+    let index = parseInt(element.get(0).id.split("-")[1], 10);
     element.children().eq(0).html("<input type='text' id='cityName-" + index + "' class='form-control' value='" + addedCities[index].cityName + "' readonly>");
     element.children().eq(1).html("<input type='number' id='xCoord-" + index + "' class='form-control' value='" + addedCities[index].xCoord + "'>");
     element.children().eq(2).html("<input type='number' id='yCoord-" + index + "' class='form-control' value='" + addedCities[index].yCoord + "'>");
@@ -94,8 +108,7 @@ function editCityRow() {
         let xCoord = parseInt($("#xCoord-" + index).val(), 10);
         let yCoord = parseInt($("#yCoord-" + index).val(), 10);
 
-        if (addedCities.filter(x => x.cityName === cityName).length === 0 ||
-            addedCities.filter(x => x.xCoord === xCoord && x.yCoord === yCoord && x.deleted === false).length === 0) {
+        if (validateCity(cityName, xCoord, yCoord, index)) {
 
             addedCities[index].cityName = cityName;
             addedCities[index].xCoord = xCoord;
@@ -154,11 +167,13 @@ function editRoadRow() {
 
     $("#saveRoad-" + index).on('click', function () {
 
-        if (addedRoads.filter(x => x.fromCity === fromCity && x.toCity === toCity && x.deleted === false).length === 0) {
-            let fromCity = $("#fromCity-" + index).val();
-            let toCity = $("#toCity-" + index).val();
-            let cap = $("#capacity-" + index).val();
-            let price = $("#price-" + index).val();
+
+        let fromCity = $("#fromCity-" + index).val();
+        let toCity = $("#toCity-" + index).val();
+        let cap = parseInt($("#capacity-" + index).val(), 10);
+        let price = parseFloat($("#price-" + index).val());
+
+        // if (addedRoads.filter(x => x.fromCity === fromCity && x.toCity === toCity && x.deleted === false).length === 0) {
 
             addedRoads[index].fromCity = fromCity;
             addedRoads[index].toCity = toCity;
@@ -176,13 +191,13 @@ function editRoadRow() {
             $(".editRoad").on('click', editRoadRow);
             $(".removeRoad").on('click', removeRoadRow);
             $(this).off();
-        } else {
-            $.notify({
-                // options
-                message: "The road already exists. Please update the existing one."
-            }, notifySettings('danger'));
-            citiesSaved = true;
-        }
+        // } else {
+        //     $.notify({
+        //         // options
+        //         message: "The road already exists. Please update the existing one."
+        //     }, notifySettings('danger'));
+        //     citiesSaved = true;
+        // }
     });
 }
 
@@ -247,7 +262,7 @@ function addCity(cityData) {
     let value = {
         'cityName': cityName,
         'xCoord': parseInt(xCoord, 10),
-        'yCoord': parseInt(yCoord,10),
+        'yCoord': parseInt(yCoord, 10),
         'deleted': false
     };
 
@@ -308,8 +323,8 @@ function addRoad(roadData) {
     if (roadData.target) {
         fromCity = $("#fromCity").val();
         toCity = $("#toCity").val();
-        cap = $("#inputCap").val();
-        price = $("#inputPrice").val();
+        cap = parseInt($("#inputCap").val());
+        price = parseFloat($("#inputPrice").val());
 
         if (fromCity === '' || toCity === '' || cap === '' || price === '') {
             $.notify({
@@ -430,16 +445,22 @@ function saveCities() {
             }, notifySettings('success'));
         },
         error: function (data) {
-            console.log("There is a problem can't save the cities", data);
-            $.notify({
-                message: "There is a problem can't save the cities"
-            }, notifySettings('danger'));
+            if (data.responseJSON.trace.includes('CitiesWithTheSameNameException') ||
+                data.responseJSON.trace.includes('CitiesWithTheSameCoordinatesException')) {
+                $.notify({
+                    message: data.responseJSON.message
+                }, notifySettings('danger'));
+            }else{
+                $.notify({
+                    message: "Something went wrong can't run the algorithm"
+                }, notifySettings('danger'));
+            }
         }
     });
 }
 
 function saveRoads(updateRoadsTable) {
-    if(citiesSaved === true){
+    if (citiesSaved === true) {
         console.log(addedRoads);
         let data = addedRoads.filter(x => x.deleted === false);
         console.log(data)
@@ -451,7 +472,7 @@ function saveRoads(updateRoadsTable) {
             success: function (data) {
                 console.log("The roads were successfully saved", data);
                 drawRoads(data);
-                if(updateRoadsTable === true){
+                if (updateRoadsTable === true) {
                     persistRoadTable(data);
                 }
                 $.notify({
@@ -465,7 +486,7 @@ function saveRoads(updateRoadsTable) {
                 }, notifySettings('danger'));
             }
         });
-    }else{
+    } else {
         $.notify({
             message: "Please save the changes of the cities first"
         }, notifySettings('warning'));
@@ -542,9 +563,9 @@ function drawRoadsAndCities(data, isResult) {
     let edges = data.map(function (x) {
         let edgeColor = '#282c34';
         if (isResult) {
-            if(x.flow > 0){
+            if (x.flow > 0) {
                 edgeColor = '#33cc33';
-            } else if(x.flow === 0){
+            } else if (x.flow === 0) {
                 edgeColor = '#ff0000';
             }
 
@@ -671,11 +692,17 @@ function runMulticost() {
                 drawRoadsAndCities(data, true)
             },
             error: function (data) {
-                if(data.responseJSON.trace.includes('NoFeasibleSolutionException')){
+                if (data.responseJSON.trace.includes('NoFeasibleSolutionException')) {
                     $.notify({
                         message: data.responseJSON.message
                     }, notifySettings('danger'));
+                }else{
+                    $.notify({
+                        message: "Something went wrong can't run the algorithm"
+                    }, notifySettings('danger'));
                 }
+
+
                 console.log("Error", data);
             }
         });
