@@ -122,6 +122,15 @@ function editCityRow() {
         let xCoord = parseInt($("#xCoord-" + index).val(), 10);
         let yCoord = parseInt($("#yCoord-" + index).val(), 10);
 
+        if (cityName === '' || isNaN(xCoord) || isNaN(yCoord)) {
+            $.notify({
+                // options
+                message: "Input fields for city can't be empty, please enter values"
+            }, notifySettings('danger'));
+
+            return
+        }
+
         if (validateCity(cityName, xCoord, yCoord, index)) {
 
             addedCities[index].cityName = cityName;
@@ -184,6 +193,15 @@ function editRoadRow() {
         let toCity = $("#toCity-" + index).val();
         let cap = parseInt($("#capacity-" + index).val(), 10);
         let price = parseFloat($("#price-" + index).val());
+
+        if (fromCity === '' || toCity === '' || isNaN(cap) || isNaN(price)) {
+            $.notify({
+                // options
+                message: "Input fields for edge can't be empty, please enter values"
+            }, notifySettings('danger'));
+
+            return
+        }
 
         if (validateRoad(fromCity, toCity, index)) {
 
@@ -262,10 +280,10 @@ function addCity(cityData) {
     if (cityData.target) {
         citiesSaved = false;
         cityName = $("#inputCityName").val();
-        xCoord = $("#inputX").val();
-        yCoord = $("#inputY").val();
+        xCoord = parseInt($("#inputX").val(), 10);
+        yCoord = parseInt($("#inputY").val(),10);
 
-        if (cityName === '' || xCoord === '' || yCoord === '') {
+        if (cityName === '' || isNaN(xCoord) || isNaN(yCoord)) {
             $.notify({
                 // options
                 message: "Input fields for city can't be empty, please enter values"
@@ -281,8 +299,8 @@ function addCity(cityData) {
 
     let value = {
         'cityName': cityName,
-        'xCoord': parseInt(xCoord, 10),
-        'yCoord': parseInt(yCoord, 10),
+        'xCoord': xCoord,
+        'yCoord': yCoord,
         'deleted': false
     };
 
@@ -346,7 +364,7 @@ function addRoad(roadData) {
         cap = parseInt($("#inputCap").val());
         price = parseFloat($("#inputPrice").val());
 
-        if (fromCity === '' || toCity === '' || cap === '' || price === '') {
+        if (fromCity === '' || toCity === '' || isNaN(cap) || isNaN(price)) {
             $.notify({
                 // options
                 message: "Input fields for edge can't be empty, please enter values"
