@@ -72,4 +72,15 @@ public class ResidualEdge  {
     public int hashCode() {
         return Objects.hash(from, to);
     }
+
+    @Override
+    public String toString() {
+        return "ResidualEdge{" +
+                "from=" + from +
+                ", to=" + to +
+                ", flow=" + flow +
+                ", price=" + price +
+                ", result=" + result +
+                '}';
+    }
 }

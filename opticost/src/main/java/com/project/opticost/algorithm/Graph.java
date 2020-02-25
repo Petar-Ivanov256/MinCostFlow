@@ -9,7 +9,6 @@ public class Graph {
     private List<Edge> listOfEdges;
     private List<Vertex> listOfVertices;
     private Map<Vertex, List<Edge>> adjacencyList;
-    // TODO add validation for parallel arcs
     //TODO: What happens if the goal destination has an outgoing arc
     private Map<Vertex, List<ResidualEdge>> residualGraph1;
     private double epsilon;
@@ -127,7 +126,7 @@ public class Graph {
                 Vertex v = path;
 
                 minFlow = Math.min(minFlow, residualGraph1.get(u).stream()
-                        .filter(x -> x.getTo().equals(v))
+                        .filter(x -> x.getTo().equals(v) && x.getFlow() > 0)
                         .findAny().orElseThrow(NoSuchElementException::new).getFlow());
 
                 path = path.getParents().get(path.getParents().size() - 1);
@@ -139,17 +138,17 @@ public class Graph {
                 Vertex v = path;
 
                 double flowUV = residualGraph1.get(u).stream()
-                        .filter(x -> x.getTo().equals(v))
+                        .filter(x -> x.getTo().equals(v) && (x.isResult() == false))
                         .findAny().orElseThrow(NoSuchElementException::new).getFlow();
                 double flowVU = residualGraph1.get(v).stream()
-                        .filter(x -> x.getTo().equals(u))
+                        .filter(x -> x.getTo().equals(u) && (x.isResult() == true))
                         .findAny().orElseThrow(NoSuchElementException::new).getFlow();
 
                 residualGraph1.get(u).stream()
-                        .filter(x -> x.getTo().equals(v))
+                        .filter(x -> x.getTo().equals(v) && (x.isResult() == false))
                         .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowUV - minFlow);
                 residualGraph1.get(v).stream()
-                        .filter(x -> x.getTo().equals(u))
+                        .filter(x -> x.getTo().equals(u) && (x.isResult() == true))
                         .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowVU + minFlow);
 
                 path = path.getParents().get(path.getParents().size() - 1);
@@ -160,7 +159,7 @@ public class Graph {
 
         return maxFlow;
     }
-
+//TODO clear all variables before run
     public Vertex findNegativeCycleInResidualGraph(Vertex from) {
         Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
         for (Vertex v : this.listOfVertices) {
@@ -336,12 +335,14 @@ public class Graph {
             Vertex curr = ((ArrayDeque<Vertex>) queue).removeFirst();
 
             for (Vertex v : this.listOfVertices) {
-                // Creates fake flow for not connected vertices based on the BFS implementation
+                // Creates fake flow for not connected vertices based on the BFS implementation=
                 double flow =  residualGraph1.get(curr).stream()
-                        .filter(x -> x.getTo().equals(v))
+                        .filter(x -> x.getTo().equals(v) && x.getFlow() > 0)
                         .findAny().orElse(new ResidualEdge(curr, v, -1, BigDecimal.ZERO, false)).getFlow();
+
                 if (v.isVisited() == false && flow > 0) {
                     ((ArrayDeque<Vertex>) queue).addLast(v);
+                    // TODO multiple parents probably should be removed
                     v.addParent(curr);
                     v.setVisited(true);
                 }

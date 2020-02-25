@@ -63,4 +63,14 @@ public class Edge {
 
         return Objects.hash(from, to);
     }
+
+    @Override
+    public String toString() {
+        return "Edge{" +
+                "from=" + from +
+                ", to=" + to +
+                ", capacity=" + capacity +
+                ", price=" + price +
+                '}';
+    }
 }

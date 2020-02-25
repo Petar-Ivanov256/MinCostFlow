@@ -538,7 +538,6 @@ function drawCities(cities) {
 
     if ('edges' in graph) {
         delete graph['edges']
-        // TODO clear edges table because it is wrong any more
     }
 
     s.graph.clear();
@@ -822,7 +821,6 @@ function onPlanChange(fromFile) {
         selectedPlanName = '';
     }
 
-    // TODO have bugs by changing the plan clear them
     if (selectedPlan.planName !== selectedPlanName) {
         s.graph.clear();
         s.refresh();
