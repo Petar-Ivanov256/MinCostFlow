@@ -9,6 +9,7 @@ public class ResidualEdge  {
     private double flow;
     private BigDecimal price;
     private boolean result;
+    private ResidualEdge mirrorEdge;
 
     public ResidualEdge(Vertex from, Vertex to, double flow, BigDecimal price, boolean result)
     {
@@ -59,6 +60,14 @@ public class ResidualEdge  {
         this.result = result;
     }
 
+    public ResidualEdge getMirrorEdge() {
+        return mirrorEdge;
+    }
+
+    public void setMirrorEdge(ResidualEdge mirrorEdge) {
+        this.mirrorEdge = mirrorEdge;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -76,8 +85,8 @@ public class ResidualEdge  {
     @Override
     public String toString() {
         return "ResidualEdge{" +
-                "from=" + from +
-                ", to=" + to +
+                "from=" + from.getName() +
+                ", to=" + to.getName() +
                 ", flow=" + flow +
                 ", price=" + price +
                 ", result=" + result +

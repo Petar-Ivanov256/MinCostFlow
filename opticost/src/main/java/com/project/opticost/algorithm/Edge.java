@@ -67,8 +67,8 @@ public class Edge {
     @Override
     public String toString() {
         return "Edge{" +
-                "from=" + from +
-                ", to=" + to +
+                "from=" + from.getName() +
+                ", to=" + to.getName() +
                 ", capacity=" + capacity +
                 ", price=" + price +
                 '}';
