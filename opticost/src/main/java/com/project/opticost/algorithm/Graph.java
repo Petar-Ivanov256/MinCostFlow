@@ -11,13 +11,11 @@ public class Graph {
     private List<Edge> listOfEdges;
     private List<Vertex> listOfVertices;
     private Map<Vertex, List<Edge>> adjacencyList;
-    //TODO: What happens if the goal destination has an outgoing arc
     private Map<Vertex, List<ResidualEdge>> residualGraph1;
     private double epsilon;
     private double minCostFlow;
 
     public Graph() {
-
         this.listOfEdges = new ArrayList<>();
         this.listOfVertices = new ArrayList<>();
         this.adjacencyList = new HashMap<>();
@@ -28,8 +26,6 @@ public class Graph {
     }
 
     public void addEdge(Edge newEdge) {
-        // TODO Validations:
-        // 1. Check for parallel arcs
         newEdge = this.updateEdges(newEdge);
         if (this.adjacencyList.containsKey(newEdge.getFrom())) {
             this.adjacencyList.get(newEdge.getFrom()).add(newEdge);
@@ -91,7 +87,6 @@ public class Graph {
     }
 
     public boolean removeEdge(Edge rmEdge) {
-        // TODO check what happens if you want to remove an Edge which is not in Graph
         boolean statusEdges = this.listOfEdges.remove(rmEdge);
         boolean statusVertices = this.adjacencyList.get(rmEdge.getFrom()).remove(rmEdge);
 
@@ -168,7 +163,6 @@ public class Graph {
         return maxFlow;
     }
 
-    //TODO clear all variables before run
     public Vertex findNegativeCycleInResidualGraph(Vertex from) {
         Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
         for (Vertex v : this.listOfVertices) {
@@ -264,11 +258,8 @@ public class Graph {
                 }
             }
 
-//            double minRFlow = rFlows.stream().mapToDouble(v -> v).min().orElseThrow(NoSuchElementException::new);
-
             double minRFlow = singleEdges.stream().min(Comparator.comparing(ResidualEdge::getFlow)).get().getFlow();
-            // TODO set the reverse flow
-            // TODO add reference for a Mirror edge
+
             for (ResidualEdge singleEdge : singleEdges) {
                 double flowMinus = singleEdge.getFlow();
                 singleEdge.setFlow(flowMinus - minRFlow);
@@ -276,39 +267,6 @@ public class Graph {
                 double flowPlus = singleEdge.getMirrorEdge().getFlow();
                 singleEdge.getMirrorEdge().setFlow(flowPlus + minRFlow);
             }
-//            for (int i = 0; i < cycle.size(); i++) {
-//                if (i == cycle.size() - 1) {
-//                    double flowMinus = residualGraph1.get(cycle.get(0)).stream()
-//                            .filter(x -> x.getTo().equals(cycle.get(cycle.size() - 1)))
-//                            .findAny().orElseThrow(NoSuchElementException::new).getFlow();
-//                    residualGraph1.get(cycle.get(0)).stream()
-//                            .filter(x -> x.getTo().equals(cycle.get(cycle.size() - 1)))
-//                            .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowMinus - minRFlow);
-//
-//                    double flowPlus = residualGraph1.get(cycle.get(cycle.size() - 1)).stream()
-//                            .filter(x -> x.getTo().equals(cycle.get(0)))
-//                            .findAny().orElseThrow(NoSuchElementException::new).getFlow();
-//                    residualGraph1.get(cycle.get(cycle.size() - 1)).stream()
-//                            .filter(x -> x.getTo().equals(cycle.get(0)))
-//                            .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowPlus + minRFlow);
-//                } else {
-//                    int finalI = i;
-//                    double flowMinus = residualGraph1.get(cycle.get(i + 1)).stream()
-//                            .filter(x -> x.getTo().equals(cycle.get(finalI)))
-//                            .findAny().orElseThrow(NoSuchElementException::new).getFlow();
-//                    residualGraph1.get(cycle.get(i + 1)).stream()
-//                            .filter(x -> x.getTo().equals(cycle.get(finalI)))
-//                            .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowMinus - minRFlow);
-//
-//                    double flowPlus = residualGraph1.get(cycle.get(i)).stream()
-//                            .filter(x -> x.getTo().equals(cycle.get(finalI + 1)))
-//                            .findAny().orElseThrow(NoSuchElementException::new).getFlow();
-//                    residualGraph1.get(cycle.get(i)).stream()
-//                            .filter(x -> x.getTo().equals(cycle.get(finalI + 1)))
-//                            .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowPlus + minRFlow);
-//                }
-//            }
-
             vertexInLoop = this.findNegativeCycleInResidualGraph(start);
         }
 
