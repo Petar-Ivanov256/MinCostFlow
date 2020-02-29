@@ -561,12 +561,15 @@ function drawRoads(roads) {
 
 function drawRoadsAndCities(data, isResult) {
     let nodes = [];
+    let minCost = 0;
     for (const x of data) {
         let fromCity = null;
         let toCity = null;
+
         if (isResult) {
             fromCity = x.edge.fromCity;
             toCity = x.edge.toCity;
+            minCost = minCost + x.price;
         } else {
             fromCity = x.fromCity;
             toCity = x.toCity;
@@ -633,6 +636,9 @@ function drawRoadsAndCities(data, isResult) {
     s.graph.read(graph);
     s.refresh();
 
+    if(minCost !== 0){
+        $("#min-cost-result").text("The cost is: " + minCost)
+    }
     console.log("Drawing Edges")
 }
 
