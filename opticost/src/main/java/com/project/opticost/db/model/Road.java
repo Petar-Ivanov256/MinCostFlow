@@ -21,7 +21,7 @@ public class Road {
     private City toCity;
 
     @Column(name = "capacity")
-    private double capacity;
+    private Integer capacity;
 
     @Column(name = "price")
     private BigDecimal price;
@@ -58,11 +58,11 @@ public class Road {
         this.toCity = toCity;
     }
 
-    public double getCapacity() {
+    public Integer getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(double capacity) {
+    public void setCapacity(Integer capacity) {
         this.capacity = capacity;
     }
 

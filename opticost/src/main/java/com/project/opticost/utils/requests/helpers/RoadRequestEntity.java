@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 public class RoadRequestEntity {
     private String fromCity;
     private String toCity;
-    private double capacity;
+    private Integer capacity;
     private BigDecimal price;
     private String planName;
 
@@ -25,11 +25,11 @@ public class RoadRequestEntity {
         this.toCity = toCity;
     }
 
-    public double getCapacity() {
+    public Integer getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(double capacity) {
+    public void setCapacity(Integer capacity) {
         this.capacity = capacity;
     }
 

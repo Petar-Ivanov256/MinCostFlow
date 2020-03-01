@@ -115,7 +115,7 @@ public class ServiceController {
             String[] content = lines.get(i).split(",");
             String fromCityName = content[0].trim();
             String toCityName = content[1].trim();
-            Double capacity = Double.parseDouble(content[2].trim());
+            Integer capacity = Integer.parseInt(content[2].trim());
             BigDecimal price = new BigDecimal(content[3].trim());
             City fromCity = cityService.createCityFromName(fromCityName);
             City toCity = cityService.createCityFromName(toCityName);

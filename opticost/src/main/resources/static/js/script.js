@@ -832,6 +832,7 @@ function onPlanChange(fromFile) {
         s.refresh();
         $('#showCities').empty();
         $('#showRoads').empty();
+        $("#min-cost-result").empty();
         addedRoads = [];
         addedCities = [];
         cityCnt = 0;

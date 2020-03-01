@@ -6,10 +6,10 @@ import java.util.Objects;
 public class Edge {
     private Vertex from;
     private Vertex to;
-    private double capacity;
+    private Integer capacity;
     private BigDecimal price;
 
-    public Edge(Vertex from, Vertex to, double capacity, BigDecimal price)
+    public Edge(Vertex from, Vertex to, Integer capacity, BigDecimal price)
     {
         this.from = from;
         this.to = to;
@@ -33,11 +33,11 @@ public class Edge {
         this.to = to;
     }
 
-    public double getCapacity() {
+    public Integer getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(double capacity) {
+    public void setCapacity(Integer capacity) {
         this.capacity = capacity;
     }
 

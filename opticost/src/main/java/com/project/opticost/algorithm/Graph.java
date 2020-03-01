@@ -93,7 +93,7 @@ public class Graph {
         return statusEdges && statusVertices;
     }
 
-    public double maxFlow(Vertex from, Vertex to) {
+    public Integer maxFlow(Vertex from, Vertex to) {
         residualGraph1 = new HashMap<>();
         Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
         Vertex end = this.listOfVertices.stream().filter(x -> x.equals(to)).findAny().orElse(null);
@@ -119,9 +119,9 @@ public class Graph {
             }
         }
 
-        double maxFlow = 0d;
+        Integer maxFlow = 0;
         while (BFS(start, end)) {
-            double minFlow = Double.MAX_VALUE;
+            Integer minFlow = Integer.MAX_VALUE;
             // TODO if you use only parenst for BFS you can use only one Vertex
             Vertex path = end;
             while (path.getParents().size() != 0) {
@@ -140,10 +140,10 @@ public class Graph {
                 Vertex u = path.getParents().get(path.getParents().size() - 1);
                 Vertex v = path;
 
-                double flowUV = residualGraph1.get(u).stream()
+                Integer flowUV = residualGraph1.get(u).stream()
                         .filter(x -> x.getTo().equals(v) && (x.isResult() == false))
                         .findAny().orElseThrow(NoSuchElementException::new).getFlow();
-                double flowVU = residualGraph1.get(v).stream()
+                Integer flowVU = residualGraph1.get(v).stream()
                         .filter(x -> x.getTo().equals(u) && (x.isResult() == true))
                         .findAny().orElseThrow(NoSuchElementException::new).getFlow();
 
@@ -202,7 +202,7 @@ public class Graph {
         return null;
     }
 
-    public int minCostFlowCycleCancel(Vertex from, Vertex to, int cargo) throws Exception {
+    public void minCostFlowCycleCancel(Vertex from, Vertex to, Integer cargo) throws Exception {
         Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
         Vertex end = this.listOfVertices.stream().filter(x -> x.equals(to)).findAny().orElse(null);
 
@@ -211,8 +211,7 @@ public class Graph {
 
         this.addEdge(new Edge(source, start, cargo, BigDecimal.valueOf(0)));
         this.addEdge(new Edge(end, dest, cargo, BigDecimal.valueOf(0)));
-        //TODO make the flow to be int
-        int maxFlow = (int) this.maxFlow(source, dest);
+        Integer maxFlow = this.maxFlow(source, dest);
 
         if (maxFlow < cargo) {
             throw new NoFeasibleSolutionException("There is no feasible solution for the supply: " + cargo);
@@ -258,19 +257,17 @@ public class Graph {
                 }
             }
 
-            double minRFlow = singleEdges.stream().min(Comparator.comparing(ResidualEdge::getFlow)).get().getFlow();
+            Integer minRFlow = singleEdges.stream().min(Comparator.comparing(ResidualEdge::getFlow)).get().getFlow();
 
             for (ResidualEdge singleEdge : singleEdges) {
-                double flowMinus = singleEdge.getFlow();
+                Integer flowMinus = singleEdge.getFlow();
                 singleEdge.setFlow(flowMinus - minRFlow);
 
-                double flowPlus = singleEdge.getMirrorEdge().getFlow();
+                Integer flowPlus = singleEdge.getMirrorEdge().getFlow();
                 singleEdge.getMirrorEdge().setFlow(flowPlus + minRFlow);
             }
             vertexInLoop = this.findNegativeCycleInResidualGraph(start);
         }
-
-        return 0;
     }
 
     private void establishFeasibleFLowCostScaling(Vertex source, Vertex dest) {

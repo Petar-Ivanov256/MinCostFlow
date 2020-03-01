@@ -6,12 +6,12 @@ import java.util.Objects;
 public class ResidualEdge  {
     private Vertex from;
     private Vertex to;
-    private double flow;
+    private Integer flow;
     private BigDecimal price;
     private boolean result;
     private ResidualEdge mirrorEdge;
 
-    public ResidualEdge(Vertex from, Vertex to, double flow, BigDecimal price, boolean result)
+    public ResidualEdge(Vertex from, Vertex to, Integer flow, BigDecimal price, boolean result)
     {
         this.from = from;
         this.to = to;
@@ -36,11 +36,11 @@ public class ResidualEdge  {
         this.to = to;
     }
 
-    public double getFlow() {
+    public Integer getFlow() {
         return flow;
     }
 
-    public void setFlow(double flow) {
+    public void setFlow(Integer flow) {
         this.flow = flow;
     }
 
