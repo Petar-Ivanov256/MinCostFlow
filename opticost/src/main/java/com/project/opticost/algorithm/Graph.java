@@ -4,6 +4,7 @@ import com.project.opticost.utils.exceptions.CorruptedDataException;
 import com.project.opticost.utils.exceptions.NoFeasibleSolutionException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -122,7 +123,6 @@ public class Graph {
         Integer maxFlow = 0;
         while (BFS(start, end)) {
             Integer minFlow = Integer.MAX_VALUE;
-            // TODO if you use only parenst for BFS you can use only one Vertex
             Vertex path = end;
             while (path.getParents().size() != 0) {
                 Vertex u = path.getParents().get(path.getParents().size() - 1);
@@ -310,6 +310,8 @@ public class Graph {
     private boolean BFS(Vertex from, Vertex to) {
         for (Vertex vertex : this.listOfVertices) {
             vertex.setVisited(false);
+            vertex.setParent(null);
+            vertex.setParents(new ArrayList<>());
         }
 
         Queue<Vertex> queue = new ArrayDeque<>();
@@ -327,7 +329,6 @@ public class Graph {
 
                 if (v.isVisited() == false && flow > 0) {
                     ((ArrayDeque<Vertex>) queue).addLast(v);
-                    // TODO multiple parents probably should be removed
                     v.addParent(curr);
                     v.setVisited(true);
                 }
@@ -342,11 +343,13 @@ public class Graph {
         for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
             for (ResidualEdge e : entry.getValue()) {
                 if (e.isResult()) {
-                    minCostFlow += e.getFlow() * e.getPrice().negate().doubleValue();
+                    BigDecimal price = BigDecimal.valueOf(e.getFlow() * e.getPrice().negate().doubleValue()).setScale(2, RoundingMode.HALF_UP);
+                    minCostFlow += price.doubleValue();
 
                     System.out.println(e.getTo() + " -> " + e.getFrom() + " - Flow: " + e.getFlow() +
-                            " / Price: " + e.getFlow() * e.getPrice().negate().doubleValue());
+                            " / Price: " + price.doubleValue());
                 }
+
             }
         }
         System.out.println("The min const flow is: " + minCostFlow);
@@ -358,10 +361,9 @@ public class Graph {
         for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
             for (ResidualEdge e : entry.getValue()) {
                 if (e.isResult()) {
-                    minCostFlow += e.getFlow() * e.getPrice().negate().doubleValue();
-                    BigDecimal price = BigDecimal.valueOf(e.getFlow() * e.getPrice().negate().doubleValue());
-                    double flow = e.getFlow();
-                    result.add(new ResultEdge(e.getTo().getName(), e.getFrom().getName(), price, flow));
+                    BigDecimal price = BigDecimal.valueOf(e.getFlow() * e.getPrice().negate().doubleValue()).setScale(2, RoundingMode.HALF_UP);
+                    minCostFlow += price.doubleValue();
+                    result.add(new ResultEdge(e.getTo().getName(), e.getFrom().getName(), price, e.getFlow()));
                 }
             }
         }

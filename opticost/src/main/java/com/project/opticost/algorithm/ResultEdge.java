@@ -6,9 +6,9 @@ public class ResultEdge {
     String fromCity;
     String toCity;
     BigDecimal price;
-    Double flow;
+    Integer flow;
 
-    public ResultEdge(String fromCity, String toCity, BigDecimal price, Double flow) {
+    public ResultEdge(String fromCity, String toCity, BigDecimal price, Integer flow) {
         this.fromCity = fromCity;
         this.toCity = toCity;
         this.price = price;
@@ -39,11 +39,11 @@ public class ResultEdge {
         this.price = price;
     }
 
-    public Double getFlow() {
+    public Integer getFlow() {
         return flow;
     }
 
-    public void setFlow(Double flow) {
+    public void setFlow(Integer flow) {
         this.flow = flow;
     }
 }

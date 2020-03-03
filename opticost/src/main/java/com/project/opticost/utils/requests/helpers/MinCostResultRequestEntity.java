@@ -7,9 +7,9 @@ import java.math.BigDecimal;
 public class MinCostResultRequestEntity {
     Road edge;
     BigDecimal price;
-    Double flow;
+    Integer flow;
 
-    public MinCostResultRequestEntity(Road edge, BigDecimal price, Double flow) {
+    public MinCostResultRequestEntity(Road edge, BigDecimal price, Integer flow) {
         this.edge = edge;
         this.price = price;
         this.flow = flow;
@@ -31,11 +31,11 @@ public class MinCostResultRequestEntity {
         this.price = price;
     }
 
-    public Double getFlow() {
+    public Integer getFlow() {
         return flow;
     }
 
-    public void setFlow(Double flow) {
+    public void setFlow(Integer flow) {
         this.flow = flow;
     }
 }
