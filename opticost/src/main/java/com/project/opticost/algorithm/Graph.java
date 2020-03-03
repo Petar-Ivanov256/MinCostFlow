@@ -13,7 +13,6 @@ public class Graph {
     private List<Vertex> listOfVertices;
     private Map<Vertex, List<Edge>> adjacencyList;
     private Map<Vertex, List<ResidualEdge>> residualGraph1;
-    private double epsilon;
     private double minCostFlow;
 
     public Graph() {
@@ -223,8 +222,7 @@ public class Graph {
         while (vertexInLoop != null) {
             Vertex parent = vertexInLoop.getParents().get(vertexInLoop.getParents().size() - 1);
             List<Vertex> cycle = new ArrayList<>();
-            //cycle.Add(vertexInLoop);
-            while (!cycle.contains(parent)/*parent != vertexInLoop*/) {
+            while (!cycle.contains(parent)) {
                 cycle.add(parent);
                 parent = parent.getParents().get(parent.getParents().size() - 1);
             }
@@ -247,7 +245,7 @@ public class Graph {
 
                 if (rList.size() == 1) {
                     singleEdges.add(rList.get(0));
-                } else if (rList.size() > 1){
+                } else if (rList.size() > 1) {
                     ResidualEdge minNegative = rList.stream()
                             .min(Comparator.comparing(x -> x.getPrice().multiply(BigDecimal.valueOf(x.getFlow()))))
                             .get();
@@ -268,19 +266,6 @@ public class Graph {
             }
             vertexInLoop = this.findNegativeCycleInResidualGraph(start);
         }
-    }
-
-    private void establishFeasibleFLowCostScaling(Vertex source, Vertex dest) {
-        this.removeVertex(source);
-        this.removeVertex(dest);
-
-//        for (int i = 0; i < adjMatrixSize; i++) {
-//            // The the indexes are reversed because in the residual network there is no edge "s" -> start and end -> "t"
-//            // because we add artificial edges with the desired capacity of the supply and demand.
-//            // That is why these edges are with full capacity and we have only the reversed edges in the Residual network
-//            this.residualGraph[i][source.getSeq()] = 0;
-//            this.residualGraph[dest.getSeq()][i] = 0;
-//        }
     }
 
     private void establishFeasibleFLow(Vertex source, Vertex dest) {
@@ -338,23 +323,6 @@ public class Graph {
         return (to.isVisited() == true);
     }
 
-    public void printGraphMinCostFlow() {
-        double minCostFlow = 0;
-        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
-            for (ResidualEdge e : entry.getValue()) {
-                if (e.isResult()) {
-                    BigDecimal price = BigDecimal.valueOf(e.getFlow() * e.getPrice().negate().doubleValue()).setScale(2, RoundingMode.HALF_UP);
-                    minCostFlow += price.doubleValue();
-
-                    System.out.println(e.getTo() + " -> " + e.getFrom() + " - Flow: " + e.getFlow() +
-                            " / Price: " + price.doubleValue());
-                }
-
-            }
-        }
-        System.out.println("The min const flow is: " + minCostFlow);
-    }
-
     public List<ResultEdge> getResult() {
         double minCostFlow = 0;
         List<ResultEdge> result = new ArrayList<>();
@@ -370,5 +338,22 @@ public class Graph {
 
         this.minCostFlow = minCostFlow;
         return result;
+    }
+
+    public void printGraphMinCostFlow() {
+        double minCostFlow = 0;
+        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
+            for (ResidualEdge e : entry.getValue()) {
+                if (e.isResult()) {
+                    BigDecimal price = BigDecimal.valueOf(e.getFlow() * e.getPrice().negate().doubleValue()).setScale(2, RoundingMode.HALF_UP);
+                    minCostFlow += price.doubleValue();
+
+                    System.out.println(e.getTo() + " -> " + e.getFrom() + " - Flow: " + e.getFlow() +
+                            " / Price: " + price.doubleValue());
+                }
+
+            }
+        }
+        System.out.println("The min const flow is: " + minCostFlow);
     }
 }

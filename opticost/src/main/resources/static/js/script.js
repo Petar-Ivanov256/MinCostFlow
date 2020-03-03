@@ -11,7 +11,17 @@ var citiesSaved = true;
 var nodeSize = 3;
 var nodeColor = '#008cc2';
 
-function checkWidth(init) {
+$(document).ready(function () {
+    checkWidth(true);
+    $(window).resize(function () {
+        checkWidth(false);
+    });
+});
+
+init();
+
+
+function checkWidth() {
 
     if ($(window).width() < 1150) {
         $('#form-container').removeClass('col-md-4');
@@ -19,24 +29,12 @@ function checkWidth(init) {
         $('#draw-container').removeClass('col-md-8');
         $('#draw-container').addClass('col-md-12');
     } else {
-        // if (!init) {
         $('#form-container').removeClass('col-md-12');
         $('#form-container').addClass('col-md-4');
         $('#draw-container').removeClass('col-md-12');
         $('#draw-container').addClass('col-md-8');
-        // }
     }
 }
-
-$(document).ready(function () {
-    checkWidth(true);
-
-    $(window).resize(function () {
-        checkWidth(false);
-    });
-});
-
-init();
 
 function init() {
     $("#verticesEdges").hide();
