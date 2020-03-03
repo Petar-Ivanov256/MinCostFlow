@@ -8,9 +8,6 @@ var cityCnt = 0;
 var roadCnt = 0;
 var citiesSaved = true;
 
-var nodeSize = 3;
-var nodeColor = '#008cc2';
-
 $(document).ready(function () {
     checkWidth(true);
     $(window).resize(function () {
@@ -58,50 +55,231 @@ function init() {
                 container: document.getElementById('sigma-container'),
                 type: 'canvas'
             },
-            settings: {
-                minEdgeSize: 2,
-                maxEdgeSize: 4,
-                minNodeSize: 20,
-                maxNodeSize: 25,
-                maxArrowSize: 6,
-                minArrowSize: 8,
-                defaultLabelSize: 17,
-                sideMargin: 50,
-                edgeLabelSize: 'proportional',
-                edgeLabelSizePowRatio: 1.5
-            }
+            settings: sigmaSettings()
         }
     );
 }
 
-function validateRoad(fromName, toName, index) {
-    for(let i = 0; i < addedRoads.length; i++){
-        if(i === index || addedRoads[i].deleted === true){
-            continue;
-        }
+// API connectors
+function runMulticost() {
+    let fromCity = $("#fromCityRun").val();
+    let toCity = $("#toCityRun").val();
+    let cargo = $("#cargo").val();
 
-        if(addedRoads[i].fromCity === fromName && addedRoads[i].toCity === toName){
-            return false
-        }
+    if (fromCity === null ||
+        toCity === null ||
+        cargo === "") {
+        $.notify({
+            message: "Please fill all fields in order to run the algorithm"
+        }, notifySettings('danger'));
+    } else {
+
+        let data = {
+            selectedPlan: selectedPlan.planName,
+            fromCity: fromCity,
+            toCity: toCity,
+            cargo: cargo
+        };
+
+        $.ajax({
+            type: "POST",
+            url: "/run",
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                console.log("Success", data);
+                drawRoadsAndCities(data, true)
+            },
+            error: function (data) {
+                if (data.responseJSON.trace.includes('NoFeasibleSolutionException')) {
+                    $.notify({
+                        message: data.responseJSON.message
+                    }, notifySettings('danger'));
+                } else {
+                    $.notify({
+                        message: "Something went wrong can't run the algorithm"
+                    }, notifySettings('danger'));
+                }
+                console.log("Error", data);
+            }
+        });
     }
-    return true;
 }
 
+function processFile() {
+    let file = $("#graphFile").prop('files')[0];
 
-function validateCity(cityName, xCoord, yCoord, index) {
-    for(let i = 0; i < addedCities.length; i++){
-        if(i === index || addedCities[i].deleted === true){
-            continue;
-        }
-
-        if((addedCities[i].xCoord === xCoord && addedCities[i].yCoord === yCoord) ||
-            addedCities[i].cityName === cityName){
-            return false
-        }
+    if (file) {
+        let formData = new FormData();
+        formData.append('file', file);
+        $.ajax({
+            url: '/process-file',
+            type: "POST",
+            data: formData,
+            enctype: 'multipart/form-data',
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                // drawRoadsAndCities(data, false)
+                selectedPlan = data;
+                plans.push(data);
+                onPlanChange(true);
+                $.notify({
+                    message: "Input processed successfully."
+                }, notifySettings('success'));
+            },
+            error: function (data) {
+                $.notify({
+                    message: "File upload failed ..."
+                }, notifySettings('danger'));
+            }
+        });
     }
-    return true;
 }
 
+function showPlans() {
+    $.ajax({
+        type: "GET",
+        url: "/plans",
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            console.log("Success", data);
+            plans = data;
+            for (let i = 0; i < data.length; i++) {
+                $('#plan-name').append($('<option>', {value: data[i].planName, text: data[i].planName}));
+            }
+        },
+        error: function (data) {
+            console.log("Error", data);
+        }
+    });
+}
+
+function savePlan() {
+    let inputPlanName = $("#planName").val();
+
+    if (inputPlanName !== null && inputPlanName !== "") {
+        plan = {
+            planName: inputPlanName,
+            roads: []
+        };
+        $.ajax({
+            type: "POST",
+            url: "/save-plan",
+            data: JSON.stringify(plan),
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                console.log("Success", data);
+                $("#verticesEdges").show();
+                selectedPlan = data;
+                $(".plan-input").hide();
+                $("#showPlan").html(
+                    "<tr id='selectedPlan'>" +
+                    drawPlanRow(data.planName) +
+                    "</tr>"
+                );
+
+                $('#plan-name').empty();
+                $('#plan-name').append($('<option>', {value: 'new', text: 'New Plan'}));
+                showPlans();
+                $(".editPlan").on('click', editPlanRow);
+                $(".removePlan").on('click', removePlanRow);
+            },
+            error: function (data) {
+                console.log("Error", data);
+            }
+        });
+    } else {
+        $.notify({
+            message: "There is no name for the plan"
+        }, notifySettings('danger'));
+    }
+}
+
+function removePlanRow() {
+    $.ajax({
+        type: "DELETE",
+        url: "/delete-plan/" + selectedPlan.id,
+        contentType: "application/json; charset=utf-8",
+        success: function () {
+            location.reload();
+        },
+        error: function (data) {
+            console.log("Error", data);
+        }
+    });
+}
+
+function saveCities() {
+    console.log(addedCities);
+    let data = addedCities.filter(x => x.deleted === false);
+    $.ajax({
+        type: "POST",
+        url: "/save-cities",
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            console.log("The cities were successfully saved", data);
+            citiesSaved = true;
+            drawCities(data);
+            if (addedRoads.length > 0) {
+                saveRoads(true);
+            }
+            $.notify({
+                message: "The cities were successfully saved"
+            }, notifySettings('success'));
+        },
+        error: function (data) {
+            if (data.responseJSON.trace.includes('CitiesWithTheSameNameException') ||
+                data.responseJSON.trace.includes('CitiesWithTheSameCoordinatesException')) {
+                $.notify({
+                    message: data.responseJSON.message
+                }, notifySettings('danger'));
+            } else {
+                $.notify({
+                    message: "Something went wrong can't run the algorithm"
+                }, notifySettings('danger'));
+            }
+        }
+    });
+}
+
+function saveRoads(updateRoadsTable) {
+    if (citiesSaved === true) {
+        console.log(addedRoads);
+        let data = addedRoads.filter(x => x.deleted === false);
+        console.log(data)
+        $.ajax({
+            type: "POST",
+            url: "/save-roads/" + selectedPlan.id,
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                console.log("The roads were successfully saved", data);
+                drawRoads(data);
+                if (updateRoadsTable === true) {
+                    persistRoadTable(data);
+                }
+                $.notify({
+                    message: "The roads were successfully saved"
+                }, notifySettings('success'));
+            },
+            error: function (data) {
+                console.log("There is a problem can't save the roads", data);
+                $.notify({
+                    message: "There is a problem can't save the roads"
+                }, notifySettings('danger'));
+            }
+        });
+    } else {
+        $.notify({
+            message: "Please save the changes of the cities first"
+        }, notifySettings('warning'));
+    }
+}
+// End of API connectors
+
+// Inline editors
 function editCityRow() {
     citiesSaved = false;
     let element = $(this).parent().parent();
@@ -237,6 +415,80 @@ function editRoadRow() {
     });
 }
 
+function editPlanRow() {
+    let element = $("#selectedPlan");
+    let index = element.get(0).id.split("-")[1];
+
+    element.children().eq(0).html("<input type='text' id='editPlanName' class='form-control' value='" + selectedPlan.planName + "'>");
+    element.children().eq(1).html(
+        "<button type='button' id='saveEditPlanName' class='btn btn-success btn-sm'>" +
+        "<span class='glyphicon glyphicon-floppy-saved'></span>" +
+        "</button>"
+    );
+
+    $("#saveEditPlanName").on('click', function () {
+        let planName = $("#editPlanName").val();
+
+        if (planName.length > 0) {
+            selectedPlan.planName = planName;
+
+            let requestPlan = $.extend(true, {}, selectedPlan);
+
+            for (let i = 0; i < requestPlan.roads.length; i++) {
+                requestPlan.roads[i].fromCity = selectedPlan.roads[i].fromCity.cityName;
+                requestPlan.roads[i].toCity = selectedPlan.roads[i].toCity.cityName;
+                delete requestPlan.roads[i].id;
+            }
+
+            $.ajax({
+                type: "PUT",
+                url: "/update-plan",
+                data: JSON.stringify(requestPlan),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log("Success", data);
+                    // Unbind the events before removing the element in order to avoid replication of event listeners
+                    $(".editPlan").off();
+                    element.empty();
+                    element.html(drawPlanRow(planName));
+
+                    $(".editPlan").on('click', editPlanRow);
+                    $(".removePlan").on('click', removePlanRow);
+                    $(this).off();
+                },
+                error: function (data) {
+                    console.log("Error", data);
+                    $.notify({
+                        message: "Something went wrong, can't update plan"
+                    }, notifySettings('danger'));
+
+                    $(".editPlan").off();
+                    element.empty();
+                    element.html(drawPlanRow(planName));
+
+                    $(".editPlan").on('click', editPlanRow);
+                    $(".removePlan").on('click', removePlanRow);
+                    $(this).off();
+
+                }
+            });
+        } else {
+            $.notify({
+                // options
+                message: "Plan name should not be empty"
+            }, notifySettings('danger'));
+
+            $(".editPlan").off();
+            element.empty();
+            element.html(drawPlanRow(selectedPlan.planName));
+
+            $(".editPlan").on('click', editPlanRow);
+            $(".removePlan").on('click', removePlanRow);
+            $(this).off();
+        }
+    });
+}
+
 function removeCityRow() {
     citiesSaved = false;
     let element = $(this).parent().parent();
@@ -267,7 +519,10 @@ function removeRoadRow() {
     element.remove();
     $(".removeRoad").on('click', removeRoadRow);
 }
+// End of Inline editors
 
+
+// Dynamic Helpers
 function addCity(cityData) {
     let cityName = null;
     let xCoord = null;
@@ -279,7 +534,7 @@ function addCity(cityData) {
         citiesSaved = false;
         cityName = $("#inputCityName").val();
         xCoord = parseInt($("#inputX").val(), 10);
-        yCoord = parseInt($("#inputY").val(),10);
+        yCoord = parseInt($("#inputY").val(), 10);
 
         if (cityName === '' || isNaN(xCoord) || isNaN(yCoord)) {
             $.notify({
@@ -328,26 +583,6 @@ function addCity(cityData) {
     }
 }
 
-function drawCityRow(cityName, xCoord, yCoord) {
-    return "<td class='col-md-3'>" +
-        cityName +
-        "</td>" +
-        "<td class='col-md-3'>" +
-        xCoord +
-        "</td>" +
-        "<td class='col-md-3'>" +
-        yCoord +
-        "</td>" +
-        "<td class='col-md-3'>" +
-        "<button type='button' class='btn btn-info btn-sm editCity'>" +
-        "<span class='glyphicon glyphicon-edit'></span>" +
-        "</button>" +
-        "<button type='button' class='btn btn-danger btn-sm removeCity'>" +
-        "<span class='glyphicon glyphicon-remove'></span>" +
-        "</button>" +
-        "</td>";
-}
-
 function addRoad(roadData) {
     let fromCity = null;
     let toCity = null;
@@ -377,7 +612,6 @@ function addRoad(roadData) {
         price = roadData.price;
     }
 
-
     if (addedRoads.filter(x => x.fromCity === fromCity && x.toCity === toCity && x.deleted === false).length === 0) {
         let previousHtml = showTable.html();
         showTable.html(
@@ -406,7 +640,83 @@ function addRoad(roadData) {
         }, notifySettings('danger'));
         citiesSaved = true;
     }
+}
 
+function onPlanChange(fromFile) {
+    let selectedPlanName = null;
+    if (fromFile.target) {
+        selectedPlanName = $('#plan-name').val();
+        $("#showPlan").html(
+            "<tr id='selectedPlan'>" +
+            drawPlanRow(selectedPlanName) +
+            "</tr>"
+        );
+
+        $(".editPlan").on('click', editPlanRow);
+        $(".removePlan").on('click', removePlanRow);
+    } else {
+        selectedPlanName = '';
+    }
+
+    if (selectedPlan.planName !== selectedPlanName) {
+        s.graph.clear();
+        s.refresh();
+        $('#showCities').empty();
+        $('#showRoads').empty();
+        $("#min-cost-result").empty();
+        addedRoads = [];
+        addedCities = [];
+        cityCnt = 0;
+        roadCnt = 0;
+        if (selectedPlanName === 'new') {
+            $("#verticesEdges").hide();
+            $(".plan-input").show();
+            $('#showCities').empty();
+            $('#showRoads').empty();
+            $('#showPlan').empty();
+            $('#planName').val("");
+            addedRoads = [];
+            addedCities = [];
+            cityCnt = 0;
+            roadCnt = 0;
+            updateCitiesDropDown("#fromCity");
+            updateCitiesDropDown("#toCity");
+            updateCitiesDropDown("#fromCityRun");
+            updateCitiesDropDown("#toCityRun");
+            return
+        }
+
+        let cities = [];
+        let roadsToDraw = [];
+
+        if (selectedPlanName !== '') {
+            selectedPlan = plans.filter(x => x.planName === selectedPlanName)[0];
+        }
+
+        for (let i = 0; i < selectedPlan.roads.length; i++) {
+            if (cities.filter(x => x.cityName === selectedPlan.roads[i].toCity.cityName).length === 0) {
+                cities.push(selectedPlan.roads[i].toCity);
+                addCity(selectedPlan.roads[i].toCity)
+            }
+
+            if (cities.filter(x => x.cityName === selectedPlan.roads[i].fromCity.cityName).length === 0) {
+                cities.push(selectedPlan.roads[i].fromCity);
+                addCity(selectedPlan.roads[i].fromCity)
+            }
+
+            roadsToDraw.push(selectedPlan.roads[i]);
+            addRoad(selectedPlan.roads[i])
+        }
+
+        drawCities(cities);
+        drawRoads(roadsToDraw);
+        $("#verticesEdges").show();
+        $(".plan-input").hide();
+    } else {
+        $.notify({
+            message: "Same plan selected"
+        }, notifySettings('info'));
+    }
 }
 
 function persistRoadTable(roads) {
@@ -438,95 +748,31 @@ function persistRoadTable(roads) {
     }
 }
 
-function drawRoadRow(fromCity, toCity, cap, price) {
-    return "<td class='col-md-3'>" +
-        fromCity +
-        "</td>" +
-        "<td class='col-md-3'>" +
-        toCity +
-        "</td>" +
-        "<td class='col-md-2'>" +
-        cap +
-        "</td>" +
-        "<td class='col-md-2'>" +
-        price +
-        "</td>" +
-        "<td class='col-md-6'>" +
-        "<button type='button' class='btn btn-info btn-sm editRoad'>" +
-        "<span class='glyphicon glyphicon-edit'></span>" +
-        "</button>" +
-        "<button type='button' class='btn btn-danger btn-sm removeRoad'>" +
-        "<span class='glyphicon glyphicon-remove'></span>" +
-        "</button>" +
-        "</td>";
-}
-
-function saveCities() {
-    console.log(addedCities);
-    let data = addedCities.filter(x => x.deleted === false);
-    $.ajax({
-        type: "POST",
-        url: "/save-cities",
-        data: JSON.stringify(data),
-        contentType: "application/json; charset=utf-8",
-        success: function (data) {
-            console.log("The cities were successfully saved", data);
-            citiesSaved = true;
-            drawCities(data);
-            if (addedRoads.length > 0) {
-                saveRoads(true);
-            }
-            $.notify({
-                message: "The cities were successfully saved"
-            }, notifySettings('success'));
-        },
-        error: function (data) {
-            if (data.responseJSON.trace.includes('CitiesWithTheSameNameException') ||
-                data.responseJSON.trace.includes('CitiesWithTheSameCoordinatesException')) {
-                $.notify({
-                    message: data.responseJSON.message
-                }, notifySettings('danger'));
-            }else{
-                $.notify({
-                    message: "Something went wrong can't run the algorithm"
-                }, notifySettings('danger'));
-            }
+function updateCitiesDropDown(elemetSelector, selectedElement) {
+    let citiesHtml = addedCities.filter(x => x.deleted === false).map(function (value, index, array) {
+        if (selectedElement === value.cityName) {
+            return "<option value='" + value.cityName + "' selected>" + value.cityName + "</option>"
+        } else {
+            return "<option value='" + value.cityName + "'>" + value.cityName + "</option>"
         }
     });
-}
 
-function saveRoads(updateRoadsTable) {
-    if (citiesSaved === true) {
-        console.log(addedRoads);
-        let data = addedRoads.filter(x => x.deleted === false);
-        console.log(data)
-        $.ajax({
-            type: "POST",
-            url: "/save-roads/" + selectedPlan.id,
-            data: JSON.stringify(data),
-            contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                console.log("The roads were successfully saved", data);
-                drawRoads(data);
-                if (updateRoadsTable === true) {
-                    persistRoadTable(data);
-                }
-                $.notify({
-                    message: "The roads were successfully saved"
-                }, notifySettings('success'));
-            },
-            error: function (data) {
-                console.log("There is a problem can't save the roads", data);
-                $.notify({
-                    message: "There is a problem can't save the roads"
-                }, notifySettings('danger'));
-            }
-        });
-    } else {
-        $.notify({
-            message: "Please save the changes of the cities first"
-        }, notifySettings('warning'));
-    }
+    $(elemetSelector).html(citiesHtml);
+}
+// End of Dynamic helpers
+
+
+// Dynamic drawers
+function drawRoads(roads) {
+    s.graph.clear();
+    graph['edges'] = roads.map(function (x) {
+        return {id: x.id, source: x.fromCity.id, target: x.toCity.id, color: '#282c34', type: 'curvedArrow', size: 0.5}
+    });
+
+    s.graph.read(graph);
+    s.refresh();
+
+    console.log("Drawing Edges")
 }
 
 function drawCities(cities) {
@@ -543,18 +789,6 @@ function drawCities(cities) {
     s.refresh();
 
     console.log("Drawing Vertices")
-}
-
-function drawRoads(roads) {
-    s.graph.clear();
-    graph['edges'] = roads.map(function (x) {
-        return {id: x.id, source: x.fromCity.id, target: x.toCity.id, color: '#282c34', type: 'curvedArrow', size: 0.5}
-    });
-
-    s.graph.read(graph);
-    s.refresh();
-
-    console.log("Drawing Edges")
 }
 
 function drawRoadsAndCities(data, isResult) {
@@ -634,52 +868,39 @@ function drawRoadsAndCities(data, isResult) {
     s.graph.read(graph);
     s.refresh();
 
-    if(minCost !== 0){
+    if (minCost !== 0) {
         $("#min-cost-result").text("The cost is: " + minCost)
     }
     console.log("Drawing Edges")
 }
+// End of Dynamic drawers
 
-function processFile() {
-    let file = $("#graphFile").prop('files')[0];
+// Validators
+function validateRoad(fromName, toName, index) {
+    for(let i = 0; i < addedRoads.length; i++){
+        if(i === index || addedRoads[i].deleted === true){
+            continue;
+        }
 
-    if (file) {
-        let formData = new FormData();
-        formData.append('file', file);
-        $.ajax({
-            url: '/process-file',
-            type: "POST",
-            data: formData,
-            enctype: 'multipart/form-data',
-            processData: false,
-            contentType: false,
-            success: function (data) {
-                // drawRoadsAndCities(data, false)
-                selectedPlan = data;
-                plans.push(data);
-                onPlanChange(true);
-                $.notify({
-                    message: "Input processed successfully."
-                }, notifySettings('success'));
-            },
-            error: function (data) {
-                $.notify({
-                    message: "File upload failed ..."
-                }, notifySettings('danger'));
-            }
-        });
+        if(addedRoads[i].fromCity === fromName && addedRoads[i].toCity === toName){
+            return false
+        }
     }
+    return true;
 }
 
-function notifySettings(type) {
-    return {
-        // settings
-        type: type,
-        placement: {
-            from: "bottom",
-            align: "left"
-        },
-    };
+function validateCity(cityName, xCoord, yCoord, index) {
+    for(let i = 0; i < addedCities.length; i++){
+        if(i === index || addedCities[i].deleted === true){
+            continue;
+        }
+
+        if((addedCities[i].xCoord === xCoord && addedCities[i].yCoord === yCoord) ||
+            addedCities[i].cityName === cityName){
+            return false
+        }
+    }
+    return true;
 }
 
 function noCitiesDropDown() {
@@ -689,302 +910,4 @@ function noCitiesDropDown() {
         }, notifySettings('info'));
     }
 }
-
-function updateCitiesDropDown(elemetSelector, selectedElement) {
-    let citiesHtml = addedCities.filter(x => x.deleted === false).map(function (value, index, array) {
-        if (selectedElement === value.cityName) {
-            return "<option value='" + value.cityName + "' selected>" + value.cityName + "</option>"
-        } else {
-            return "<option value='" + value.cityName + "'>" + value.cityName + "</option>"
-        }
-
-    });
-
-    $(elemetSelector).html(citiesHtml);
-}
-
-function runMulticost() {
-    let fromCity = $("#fromCityRun").val();
-    let toCity = $("#toCityRun").val();
-    let cargo = $("#cargo").val();
-
-    if (fromCity === null ||
-        toCity === null ||
-        cargo === "") {
-        $.notify({
-            message: "Please fill all fields in order to run the algorithm"
-        }, notifySettings('danger'));
-    } else {
-
-        let data = {
-            selectedPlan: selectedPlan.planName,
-            fromCity: fromCity,
-            toCity: toCity,
-            cargo: cargo
-        };
-
-        $.ajax({
-            type: "POST",
-            url: "/run",
-            data: JSON.stringify(data),
-            contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                console.log("Success", data);
-                drawRoadsAndCities(data, true)
-            },
-            error: function (data) {
-                if (data.responseJSON.trace.includes('NoFeasibleSolutionException')) {
-                    $.notify({
-                        message: data.responseJSON.message
-                    }, notifySettings('danger'));
-                }else{
-                    $.notify({
-                        message: "Something went wrong can't run the algorithm"
-                    }, notifySettings('danger'));
-                }
-
-
-                console.log("Error", data);
-            }
-        });
-    }
-}
-
-function savePlan() {
-    let inputPlanName = $("#planName").val();
-
-    if (inputPlanName !== null && inputPlanName !== "") {
-        plan = {
-            planName: inputPlanName,
-            roads: []
-        };
-        $.ajax({
-            type: "POST",
-            url: "/save-plan",
-            data: JSON.stringify(plan),
-            contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                console.log("Success", data);
-                $("#verticesEdges").show();
-                selectedPlan = data;
-                $(".plan-input").hide();
-                $("#showPlan").html(
-                    "<tr id='selectedPlan'>" +
-                    drawPlanRow(data.planName) +
-                    "</tr>"
-                );
-
-                $('#plan-name').empty();
-                $('#plan-name').append($('<option>', {value: 'new', text: 'New Plan'}));
-                showPlans();
-                $(".editPlan").on('click', editPlanRow);
-                $(".removePlan").on('click', removePlanRow);
-            },
-            error: function (data) {
-                console.log("Error", data);
-            }
-        });
-    } else {
-        $.notify({
-            message: "There is no name for the plan"
-        }, notifySettings('danger'));
-    }
-}
-
-function showPlans() {
-    $.ajax({
-        type: "GET",
-        url: "/plans",
-        contentType: "application/json; charset=utf-8",
-        success: function (data) {
-            console.log("Success", data);
-            plans = data;
-            for (let i = 0; i < data.length; i++) {
-                $('#plan-name').append($('<option>', {value: data[i].planName, text: data[i].planName}));
-            }
-        },
-        error: function (data) {
-            console.log("Error", data);
-        }
-    });
-}
-
-function onPlanChange(fromFile) {
-    let selectedPlanName = null;
-    if (fromFile.target) {
-        selectedPlanName = $('#plan-name').val();
-        $("#showPlan").html(
-            "<tr id='selectedPlan'>" +
-            drawPlanRow(selectedPlanName) +
-            "</tr>"
-        );
-
-        $(".editPlan").on('click', editPlanRow);
-        $(".removePlan").on('click', removePlanRow);
-    } else {
-        selectedPlanName = '';
-    }
-
-    if (selectedPlan.planName !== selectedPlanName) {
-        s.graph.clear();
-        s.refresh();
-        $('#showCities').empty();
-        $('#showRoads').empty();
-        $("#min-cost-result").empty();
-        addedRoads = [];
-        addedCities = [];
-        cityCnt = 0;
-        roadCnt = 0;
-        if (selectedPlanName === 'new') {
-            $("#verticesEdges").hide();
-            $(".plan-input").show();
-            $('#showCities').empty();
-            $('#showRoads').empty();
-            $('#showPlan').empty();
-            $('#planName').val("");
-            addedRoads = [];
-            addedCities = [];
-            cityCnt = 0;
-            roadCnt = 0;
-            updateCitiesDropDown("#fromCity");
-            updateCitiesDropDown("#toCity");
-            updateCitiesDropDown("#fromCityRun");
-            updateCitiesDropDown("#toCityRun");
-            return
-        }
-
-        let cities = [];
-        let roadsToDraw = [];
-
-        if (selectedPlanName !== '') {
-            selectedPlan = plans.filter(x => x.planName === selectedPlanName)[0];
-        }
-
-
-        for (let i = 0; i < selectedPlan.roads.length; i++) {
-            if (cities.filter(x => x.cityName === selectedPlan.roads[i].toCity.cityName).length === 0) {
-                cities.push(selectedPlan.roads[i].toCity);
-                addCity(selectedPlan.roads[i].toCity)
-            }
-
-            if (cities.filter(x => x.cityName === selectedPlan.roads[i].fromCity.cityName).length === 0) {
-                cities.push(selectedPlan.roads[i].fromCity);
-                addCity(selectedPlan.roads[i].fromCity)
-            }
-
-            roadsToDraw.push(selectedPlan.roads[i]);
-            addRoad(selectedPlan.roads[i])
-        }
-
-        drawCities(cities);
-        drawRoads(roadsToDraw);
-        $("#verticesEdges").show();
-        $(".plan-input").hide();
-    } else {
-        $.notify({
-            message: "Same plan selected"
-        }, notifySettings('info'));
-    }
-}
-
-function drawPlanRow(cityName) {
-    return "<td class='col-md-6'>" +
-        cityName +
-        "</td>" +
-        "<td class='col-md-6'>" +
-        "<button type='button' class='btn btn-info btn-sm editPlan'>" +
-        "<span class='glyphicon glyphicon-edit'></span>" +
-        "</button>" +
-        "<button type='button' class='btn btn-danger btn-sm removePlan'>" +
-        "<span class='glyphicon glyphicon-remove'></span>" +
-        "</button>" +
-        "</td>";
-}
-
-function editPlanRow() {
-    let element = $("#selectedPlan");
-    let index = element.get(0).id.split("-")[1];
-
-    element.children().eq(0).html("<input type='text' id='editPlanName' class='form-control' value='" + selectedPlan.planName + "'>");
-    element.children().eq(1).html(
-        "<button type='button' id='saveEditPlanName' class='btn btn-success btn-sm'>" +
-        "<span class='glyphicon glyphicon-floppy-saved'></span>" +
-        "</button>"
-    );
-
-    $("#saveEditPlanName").on('click', function () {
-        let planName = $("#editPlanName").val();
-
-        if (planName.length > 0) {
-            selectedPlan.planName = planName;
-
-            let requestPlan = $.extend(true, {}, selectedPlan);
-
-            for (let i = 0; i < requestPlan.roads.length; i++) {
-                requestPlan.roads[i].fromCity = selectedPlan.roads[i].fromCity.cityName;
-                requestPlan.roads[i].toCity = selectedPlan.roads[i].toCity.cityName;
-                delete requestPlan.roads[i].id;
-            }
-
-            $.ajax({
-                type: "PUT",
-                url: "/update-plan",
-                data: JSON.stringify(requestPlan),
-                contentType: "application/json; charset=utf-8",
-                success: function (data) {
-                    console.log("Success", data);
-                    // Unbind the events before removing the element in order to avoid replication of event listeners
-                    $(".editPlan").off();
-                    element.empty();
-                    element.html(drawPlanRow(planName));
-
-                    $(".editPlan").on('click', editPlanRow);
-                    $(".removePlan").on('click', removePlanRow);
-                    $(this).off();
-                },
-                error: function (data) {
-                    console.log("Error", data);
-                    $.notify({
-                        message: "Something went wrong, can't update plan"
-                    }, notifySettings('danger'));
-
-                    $(".editPlan").off();
-                    element.empty();
-                    element.html(drawPlanRow(planName));
-
-                    $(".editPlan").on('click', editPlanRow);
-                    $(".removePlan").on('click', removePlanRow);
-                    $(this).off();
-
-                }
-            });
-        } else {
-            $.notify({
-                // options
-                message: "Plan name should not be empty"
-            }, notifySettings('danger'));
-
-            $(".editPlan").off();
-            element.empty();
-            element.html(drawPlanRow(selectedPlan.planName));
-
-            $(".editPlan").on('click', editPlanRow);
-            $(".removePlan").on('click', removePlanRow);
-            $(this).off();
-        }
-    });
-}
-
-function removePlanRow() {
-    $.ajax({
-        type: "DELETE",
-        url: "/delete-plan/" + selectedPlan.id,
-        contentType: "application/json; charset=utf-8",
-        success: function () {
-            location.reload();
-        },
-        error: function (data) {
-            console.log("Error", data);
-        }
-    });
-}
+// End of Validators
