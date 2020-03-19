@@ -150,6 +150,9 @@ function showPlans() {
             }
         },
         error: function (data) {
+            $.notify({
+                message: "Something went wrong can't retrieve plans"
+            }, notifySettings('danger'));
             console.log("Error", data);
         }
     });
@@ -186,6 +189,9 @@ function savePlan() {
                 $(".removePlan").on('click', removePlanRow);
             },
             error: function (data) {
+                $.notify({
+                    message: "Something went wrong can't save the plan"
+                }, notifySettings('danger'));
                 console.log("Error", data);
             }
         });
@@ -205,6 +211,9 @@ function removePlanRow() {
             location.reload();
         },
         error: function (data) {
+            $.notify({
+                message: "Something went wrong can't delete the plan row"
+            }, notifySettings('danger'));
             console.log("Error", data);
         }
     });
