@@ -12,7 +12,7 @@ public class Graph {
     private List<Edge> listOfEdges;
     private List<Vertex> listOfVertices;
     private Map<Vertex, List<Edge>> adjacencyList;
-    private Map<Vertex, List<ResidualEdge>> residualGraph1;
+    private Map<Vertex, List<ResidualEdge>> residualGraph;
     private double minCostFlow;
 
     public Graph() {
@@ -94,13 +94,13 @@ public class Graph {
     }
 
     public Integer maxFlow(Vertex from, Vertex to) {
-        residualGraph1 = new HashMap<>();
+        residualGraph = new HashMap<>();
         Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
         Vertex end = this.listOfVertices.stream().filter(x -> x.equals(to)).findAny().orElse(null);
 
         for (Map.Entry<Vertex, List<Edge>> entry : this.adjacencyList.entrySet()) {
-            if (!residualGraph1.containsKey(entry.getKey())) {
-                residualGraph1.put(entry.getKey(), new ArrayList<>());
+            if (!residualGraph.containsKey(entry.getKey())) {
+                residualGraph.put(entry.getKey(), new ArrayList<>());
             }
             for (Edge e : entry.getValue()) {
                 ResidualEdge fromTo = new ResidualEdge(e.getFrom(), e.getTo(), e.getCapacity(), e.getPrice(), false);
@@ -109,12 +109,12 @@ public class Graph {
                 fromTo.setMirrorEdge(toFrom);
                 toFrom.setMirrorEdge(fromTo);
 
-                residualGraph1.get(entry.getKey()).add(fromTo);
-                if (!residualGraph1.containsKey(e.getTo())) {
-                    residualGraph1.put(e.getTo(), new ArrayList<>());
-                    residualGraph1.get(e.getTo()).add(toFrom);
+                residualGraph.get(entry.getKey()).add(fromTo);
+                if (!residualGraph.containsKey(e.getTo())) {
+                    residualGraph.put(e.getTo(), new ArrayList<>());
+                    residualGraph.get(e.getTo()).add(toFrom);
                 } else {
-                    residualGraph1.get(e.getTo()).add(toFrom);
+                    residualGraph.get(e.getTo()).add(toFrom);
                 }
             }
         }
@@ -127,7 +127,7 @@ public class Graph {
                 Vertex u = path.getParents().get(path.getParents().size() - 1);
                 Vertex v = path;
 
-                minFlow = Math.min(minFlow, residualGraph1.get(u).stream()
+                minFlow = Math.min(minFlow, residualGraph.get(u).stream()
                         .filter(x -> x.getTo().equals(v) && x.getFlow() > 0)
                         .findAny().orElseThrow(NoSuchElementException::new).getFlow());
 
@@ -139,17 +139,17 @@ public class Graph {
                 Vertex u = path.getParents().get(path.getParents().size() - 1);
                 Vertex v = path;
 
-                Integer flowUV = residualGraph1.get(u).stream()
+                Integer flowUV = residualGraph.get(u).stream()
                         .filter(x -> x.getTo().equals(v) && (x.isResult() == false))
                         .findAny().orElseThrow(NoSuchElementException::new).getFlow();
-                Integer flowVU = residualGraph1.get(v).stream()
+                Integer flowVU = residualGraph.get(v).stream()
                         .filter(x -> x.getTo().equals(u) && (x.isResult() == true))
                         .findAny().orElseThrow(NoSuchElementException::new).getFlow();
 
-                residualGraph1.get(u).stream()
+                residualGraph.get(u).stream()
                         .filter(x -> x.getTo().equals(v) && (x.isResult() == false))
                         .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowUV - minFlow);
-                residualGraph1.get(v).stream()
+                residualGraph.get(v).stream()
                         .filter(x -> x.getTo().equals(u) && (x.isResult() == true))
                         .findAny().orElseThrow(NoSuchElementException::new).setFlow(flowVU + minFlow);
 
@@ -171,7 +171,7 @@ public class Graph {
         start.setDistance(0);
 
         for (int i = 0; i < this.listOfVertices.size() - 1; i++) {
-            for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
+            for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph.entrySet()) {
                 Vertex uVertex = this.listOfVertices.stream().filter(x -> x.equals(entry.getKey())).findAny().orElse(null);
                 for (ResidualEdge e : entry.getValue()) {
                     if (e.getFlow() > 0) {
@@ -186,7 +186,7 @@ public class Graph {
             }
         }
 
-        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
+        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph.entrySet()) {
             Vertex uVertex = this.listOfVertices.stream().filter(x -> x.equals(entry.getKey())).findAny().orElse(null);
             for (ResidualEdge e : entry.getValue()) {
                 if (e.getFlow() > 0) {
@@ -240,7 +240,7 @@ public class Graph {
                 }
 
                 Vertex finalVTo = vTo;
-                List<ResidualEdge> rList = residualGraph1.get(vFrom).stream()
+                List<ResidualEdge> rList = residualGraph.get(vFrom).stream()
                         .filter(x -> x.getTo().equals(finalVTo)).collect(Collectors.toList());
 
                 if (rList.size() == 1) {
@@ -272,10 +272,10 @@ public class Graph {
         this.removeVertex(source);
         this.removeVertex(dest);
 
-        this.residualGraph1.remove(source);
-        this.residualGraph1.remove(dest);
+        this.residualGraph.remove(source);
+        this.residualGraph.remove(dest);
 
-        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
+        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph.entrySet()) {
             List<ResidualEdge> toRemove = new ArrayList<>();
             for (ResidualEdge e : entry.getValue()) {
                 if (e.getFrom().equals(source) ||
@@ -308,7 +308,7 @@ public class Graph {
 
             for (Vertex v : this.listOfVertices) {
                 // Creates fake flow for not connected vertices based on the BFS implementation=
-                double flow = residualGraph1.get(curr).stream()
+                double flow = residualGraph.get(curr).stream()
                         .filter(x -> x.getTo().equals(v) && x.getFlow() > 0)
                         .findAny().orElse(new ResidualEdge(curr, v, -1, BigDecimal.ZERO, false)).getFlow();
 
@@ -326,7 +326,7 @@ public class Graph {
     public List<ResultEdge> getResult() {
         double minCostFlow = 0;
         List<ResultEdge> result = new ArrayList<>();
-        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
+        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph.entrySet()) {
             for (ResidualEdge e : entry.getValue()) {
                 if (e.isResult()) {
                     BigDecimal price = BigDecimal.valueOf(e.getFlow() * e.getPrice().negate().doubleValue()).setScale(2, RoundingMode.HALF_UP);
@@ -342,7 +342,7 @@ public class Graph {
 
     public void printGraphMinCostFlow() {
         double minCostFlow = 0;
-        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph1.entrySet()) {
+        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph.entrySet()) {
             for (ResidualEdge e : entry.getValue()) {
                 if (e.isResult()) {
                     BigDecimal price = BigDecimal.valueOf(e.getFlow() * e.getPrice().negate().doubleValue()).setScale(2, RoundingMode.HALF_UP);
