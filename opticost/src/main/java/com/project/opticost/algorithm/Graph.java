@@ -19,6 +19,7 @@ public class Graph {
         this.listOfEdges = new ArrayList<>();
         this.listOfVertices = new ArrayList<>();
         this.adjacencyList = new HashMap<>();
+        this.residualGraph = new HashMap<>();
     }
 
     public BigDecimal getMinCostFlow() {
@@ -94,30 +95,10 @@ public class Graph {
     }
 
     public Integer maxFlow(Vertex from, Vertex to) {
-        residualGraph = new HashMap<>();
         Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
         Vertex end = this.listOfVertices.stream().filter(x -> x.equals(to)).findAny().orElse(null);
 
-        for (Map.Entry<Vertex, List<Edge>> entry : this.adjacencyList.entrySet()) {
-            if (!residualGraph.containsKey(entry.getKey())) {
-                residualGraph.put(entry.getKey(), new ArrayList<>());
-            }
-            for (Edge e : entry.getValue()) {
-                ResidualEdge fromTo = new ResidualEdge(e.getFrom(), e.getTo(), e.getCapacity(), e.getPrice(), false);
-                ResidualEdge toFrom = new ResidualEdge(e.getTo(), e.getFrom(), 0, e.getPrice().negate(), true);
-
-                fromTo.setMirrorEdge(toFrom);
-                toFrom.setMirrorEdge(fromTo);
-
-                residualGraph.get(entry.getKey()).add(fromTo);
-                if (!residualGraph.containsKey(e.getTo())) {
-                    residualGraph.put(e.getTo(), new ArrayList<>());
-                    residualGraph.get(e.getTo()).add(toFrom);
-                } else {
-                    residualGraph.get(e.getTo()).add(toFrom);
-                }
-            }
-        }
+        buildResidualGraph();
 
         Integer maxFlow = 0;
         while (BFS(start, end)) {
@@ -233,7 +214,7 @@ public class Graph {
                 if (rList.size() == 1) {
                     singleEdges.add(rList.get(0));
                 } else if (rList.size() > 1) {
-                    ResidualEdge minNegative = rList.stream()
+                    ResidualEdge minNegative = rList.stream().filter(x -> x.getFlow() > 0)
                             .min(Comparator.comparing(x -> x.getPrice().multiply(BigDecimal.valueOf(x.getFlow()))))
                             .get();
                     singleEdges.add(minNegative);
@@ -308,6 +289,29 @@ public class Graph {
         }
 
         return (to.isVisited() == true);
+    }
+
+    private void buildResidualGraph() {
+        for (Map.Entry<Vertex, List<Edge>> entry : this.adjacencyList.entrySet()) {
+            if (!residualGraph.containsKey(entry.getKey())) {
+                residualGraph.put(entry.getKey(), new ArrayList<>());
+            }
+            for (Edge e : entry.getValue()) {
+                ResidualEdge fromTo = new ResidualEdge(e.getFrom(), e.getTo(), e.getCapacity(), e.getPrice(), false);
+                ResidualEdge toFrom = new ResidualEdge(e.getTo(), e.getFrom(), 0, e.getPrice().negate(), true);
+
+                fromTo.setMirrorEdge(toFrom);
+                toFrom.setMirrorEdge(fromTo);
+
+                residualGraph.get(entry.getKey()).add(fromTo);
+                if (!residualGraph.containsKey(e.getTo())) {
+                    residualGraph.put(e.getTo(), new ArrayList<>());
+                    residualGraph.get(e.getTo()).add(toFrom);
+                } else {
+                    residualGraph.get(e.getTo()).add(toFrom);
+                }
+            }
+        }
     }
 
     public List<ResultEdge> getResult() {
