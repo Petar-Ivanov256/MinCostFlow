@@ -181,7 +181,8 @@ public class Graph {
         Integer maxFlow = this.maxFlow(source, dest);
 
         if (maxFlow < cargo) {
-            throw new NoFeasibleSolutionException("There is no feasible solution for the supply: " + cargo);
+            throw new NoFeasibleSolutionException("There is no feasible solution for the supply: " + cargo + "." +
+                    "The max flow between the two cities is: " + maxFlow);
         } else {
             this.establishFeasibleFLow(source, dest);
         }

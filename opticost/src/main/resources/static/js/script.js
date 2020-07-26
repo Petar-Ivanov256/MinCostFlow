@@ -92,6 +92,7 @@ function runMulticost() {
             },
             error: function (data) {
                 if (data.responseJSON.trace.includes('NoFeasibleSolutionException')) {
+                    $("#min-cost-result").html(data.responseJSON.message.split('.').join('</br>'));
                     $.notify({
                         message: data.responseJSON.message
                     }, notifySettings('danger'));
