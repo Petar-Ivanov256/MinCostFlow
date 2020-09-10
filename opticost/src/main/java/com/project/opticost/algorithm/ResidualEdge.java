@@ -11,6 +11,8 @@ public class ResidualEdge  {
     private boolean result;
     private ResidualEdge mirrorEdge;
 
+    private boolean traversed;
+
     public ResidualEdge(Vertex from, Vertex to, Integer flow, BigDecimal price, boolean result)
     {
         this.from = from;
@@ -18,6 +20,7 @@ public class ResidualEdge  {
         this.flow = flow;
         this.price = price;
         this.result = result;
+        this.traversed = false;
     }
 
     public Vertex getFrom() {
@@ -66,6 +69,14 @@ public class ResidualEdge  {
 
     public void setMirrorEdge(ResidualEdge mirrorEdge) {
         this.mirrorEdge = mirrorEdge;
+    }
+
+    public boolean isTraversed() {
+        return traversed;
+    }
+
+    public void setTraversed(boolean traversed) {
+        this.traversed = traversed;
     }
 
     @Override

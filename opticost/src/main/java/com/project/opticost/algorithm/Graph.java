@@ -133,11 +133,11 @@ public class Graph {
     public Vertex findNegativeCycleInResidualGraph(Vertex from) {
         Vertex start = this.listOfVertices.stream().filter(x -> x.equals(from)).findAny().orElse(null);
         for (Vertex v : this.listOfVertices) {
-            v.setDistance(Integer.MAX_VALUE);
+//            v.setDistance(Integer.MAX_VALUE);
+            v.setDistance(1000);
             v.setParents(new ArrayList<>());
         }
         start.setDistance(0);
-
         for (int i = 0; i < this.listOfVertices.size() - 1; i++) {
             for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph.entrySet()) {
                 Vertex uVertex = this.listOfVertices.stream().filter(x -> x.equals(entry.getKey())).findAny().orElse(null);
@@ -146,8 +146,10 @@ public class Graph {
                         Vertex vVertex = this.listOfVertices.stream().filter(x -> x.equals(e.getTo())).findAny().orElse(null);
                         if (vVertex.getDistance() > uVertex.getDistance() + e.getPrice().doubleValue()) {
                             vVertex.setDistance(uVertex.getDistance() + e.getPrice().doubleValue());
-                            vVertex.getParents().add(uVertex);
+//                            vVertex.getParents().add(uVertex);
+                            vVertex.addParent(uVertex);
                             vVertex.setParent(uVertex);
+                            vVertex.setParentClass(new Parent(uVertex, e));
                         }
                     }
                 }
@@ -160,7 +162,10 @@ public class Graph {
                 if (e.getFlow() > 0) {
                     Vertex vVertex = this.listOfVertices.stream().filter(x -> x.equals(e.getTo())).findAny().orElse(null);
                     if (vVertex.getDistance() > uVertex.getDistance() + e.getPrice().doubleValue()) {
-                        vVertex.getParents().add(uVertex);
+//                        vVertex.getParents().add(uVertex);
+                        vVertex.addParent(uVertex);
+                        vVertex.setParent(uVertex);
+                        vVertex.setParentClass(new Parent(uVertex, e));
                         return vVertex;
                     }
                 }
@@ -187,42 +192,62 @@ public class Graph {
             this.establishFeasibleFLow(source, dest);
         }
 
+        // TODO not good naming
         Vertex vertexInLoop = this.findNegativeCycleInResidualGraph(start);
         while (vertexInLoop != null) {
-            Vertex parent = vertexInLoop.getParents().get(vertexInLoop.getParents().size() - 1);
+
+//            List<ResidualEdge> singleEdges = buildNegativeGraph(vertexInLoop);
+            List<ResidualEdge> singleEdges = new ArrayList<>();
+
+            Vertex parent = vertexInLoop.getParentClass().getParent();
             List<Vertex> cycle = new ArrayList<>();
+            cycle.add(vertexInLoop);
             while (!cycle.contains(parent)) {
                 cycle.add(parent);
-                parent = parent.getParents().get(parent.getParents().size() - 1);
+                parent = parent.getParentClass().getParent();
             }
 
-            List<ResidualEdge> singleEdges = new ArrayList<>();
-            for (int i = 0; i < cycle.size(); i++) {
-                Vertex vFrom = null;
-                Vertex vTo = null;
-                if (i == cycle.size() - 1) {
-                    vFrom = cycle.get(0);
-                    vTo = cycle.get(cycle.size() - 1);
-                } else {
-                    vFrom = cycle.get(i + 1);
-                    vTo = cycle.get(i);
-                }
+            cycle = cycle.subList(cycle.indexOf(parent), cycle.size());
 
-                Vertex finalVTo = vTo;
-                List<ResidualEdge> rList = residualGraph.get(vFrom).stream()
-                        .filter(x -> x.getTo().equals(finalVTo)).collect(Collectors.toList());
-
-                if (rList.size() == 1) {
-                    singleEdges.add(rList.get(0));
-                } else if (rList.size() > 1) {
-                    ResidualEdge minNegative = rList.stream().filter(x -> x.getFlow() > 0)
-                            .min(Comparator.comparing(x -> x.getPrice().multiply(BigDecimal.valueOf(x.getFlow()))))
-                            .get();
-                    singleEdges.add(minNegative);
-                } else {
-                    throw new CorruptedDataException("No connection in the negative cycle");
-                }
+            for (Vertex v : cycle) {
+                singleEdges.add(v.getParentClass().getConnection());
             }
+//            Vertex parent = vertexInLoop.getParents().get(vertexInLoop.getParents().size() - 1);
+//            List<Vertex> cycle = new ArrayList<>();
+////            cycle.add(vertexInLoop);
+//            while (!cycle.contains(parent)) {
+//                cycle.add(parent);
+//                parent = parent.getParents().get(parent.getParents().size() - 1);
+//            }
+
+
+//            List<ResidualEdge> singleEdges = new ArrayList<>();
+//            for (int i = 0; i < cycle.size(); i++) {
+//                Vertex vFrom = null;
+//                Vertex vTo = null;
+//                if (i == cycle.size() - 1) {
+//                    vFrom = cycle.get(0);
+//                    vTo = cycle.get(cycle.size() - 1);
+//                } else {
+//                    vFrom = cycle.get(i + 1);
+//                    vTo = cycle.get(i);
+//                }
+//
+//                Vertex finalVTo = vTo;
+//                List<ResidualEdge> rList = residualGraph.get(vFrom).stream()
+//                        .filter(x -> x.getTo().equals(finalVTo)).collect(Collectors.toList());
+//
+//                if (rList.size() == 1) {
+//                    singleEdges.add(rList.get(0));
+//                } else if (rList.size() > 1) {
+//                    ResidualEdge minNegative = rList.stream().filter(x -> x.getFlow() > 0)
+//                            .min(Comparator.comparing(x -> x.getPrice().multiply(BigDecimal.valueOf(x.getFlow()))))
+//                            .get();
+//                    singleEdges.add(minNegative);
+//                } else {
+//                    throw new CorruptedDataException("No connection in the negative cycle");
+//                }
+//            }
 
             Integer minRFlow = singleEdges.stream().min(Comparator.comparing(ResidualEdge::getFlow)).get().getFlow();
 
@@ -234,6 +259,67 @@ public class Graph {
                 singleEdge.getMirrorEdge().setFlow(flowPlus + minRFlow);
             }
             vertexInLoop = this.findNegativeCycleInResidualGraph(start);
+        }
+    }
+
+    private List<ResidualEdge> buildNegativeGraph(Vertex start) throws CorruptedDataException {
+        List<ResidualEdge> cycleEdges = new ArrayList<>();
+
+        Stack<Vertex> cycle = new Stack<>();
+        Stack<ResidualEdge> s = new Stack<>();
+
+        for (ResidualEdge edge : this.residualGraph.get(start)) {
+            if (edge.getFlow() > 0) {
+                s.push(edge);
+            }
+        }
+
+        while (!s.isEmpty()) {
+            ResidualEdge e = s.peek();
+            s.pop();
+            if (!e.isTraversed()) {
+                e.setTraversed(true);
+                e.getMirrorEdge().setTraversed(true);
+                if (!cycle.contains(e.getTo())) {
+                    cycleEdges.add(e);
+                }// could add else and continue
+
+
+                if (e.getTo().equals(start)) {
+                    BigDecimal sum = cycleEdges.stream()
+                            .map(ResidualEdge::getPrice)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    // TODO Do it better
+                    if (sum.doubleValue() < 0) {
+                        restoreEdges();
+                        return cycleEdges;
+                    } else {
+                        cycle.pop();
+                        continue;
+                    }
+                }
+
+                if (!cycle.contains(e.getTo())) {
+                    cycle.push(e.getTo());
+                    for (ResidualEdge residualEdge : this.residualGraph.get(e.getTo())) {
+                        if (residualEdge.getFlow() > 0 && !residualEdge.isTraversed()) {
+                            s.push(residualEdge);
+                        }
+                    }
+                }
+            }
+
+        }
+
+//        throw new CorruptedDataException("Can not build the negative cycle edges");
+        return null;
+    }
+
+    private void restoreEdges() {
+        for (Map.Entry<Vertex, List<ResidualEdge>> entry : this.residualGraph.entrySet()) {
+            for (ResidualEdge e : entry.getValue()) {
+                e.setTraversed(false);
+            }
         }
     }
 
@@ -274,7 +360,6 @@ public class Graph {
 
         while (queue.size() != 0) {
             Vertex curr = ((ArrayDeque<Vertex>) queue).removeFirst();
-
             for (Vertex v : this.listOfVertices) {
                 // Creates fake flow for not connected vertices based on the BFS implementation
                 double flow = residualGraph.get(curr).stream()

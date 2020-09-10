@@ -19,6 +19,7 @@ public class Vertex {
     private double nodeImbalance;
     private Edge currentEdge;
     private List<Edge> edges;
+    private Parent parentClass;
 
     public Vertex(String name)
     {
@@ -26,6 +27,14 @@ public class Vertex {
         this.parents = new ArrayList<>();
         this.children = new ArrayList<>();
         this.nodeBalance = 0;
+    }
+
+    public Parent getParentClass() {
+        return parentClass;
+    }
+
+    public void setParentClass(Parent parentClass) {
+        this.parentClass = parentClass;
     }
 
     public boolean removeChild(Vertex child)
@@ -170,7 +179,7 @@ public class Vertex {
     public String toString() {
         return "Vertex{" +
                 "name='" + name + "\' " +
-                "seq=" + seq +
+                "distance=" + distance +
                 '}';
     }
 }
