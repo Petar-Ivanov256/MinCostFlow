@@ -1,27 +1,27 @@
 package com.project.opticost.algorithm;
 
 public class Parent {
-    private Vertex parent;
-    private ResidualEdge connection;
+    private Vertex vertex;
+    private ResidualEdge residualEdge;
 
-    public Parent(Vertex parent, ResidualEdge connection) {
-        this.parent = parent;
-        this.connection = connection;
+    public Parent(Vertex parent, ResidualEdge residualEdge) {
+        this.vertex = parent;
+        this.residualEdge = residualEdge;
     }
 
-    public Vertex getParent() {
-        return parent;
+    public Vertex getVertex() {
+        return vertex;
     }
 
-    public void setParent(Vertex parent) {
-        this.parent = parent;
+    public void setVertex(Vertex vertex) {
+        this.vertex = vertex;
     }
 
-    public ResidualEdge getConnection() {
-        return connection;
+    public ResidualEdge getResidualEdge() {
+        return residualEdge;
     }
 
-    public void setConnection(ResidualEdge connection) {
-        this.connection = connection;
+    public void setResidualEdge(ResidualEdge residualEdge) {
+        this.residualEdge = residualEdge;
     }
 }

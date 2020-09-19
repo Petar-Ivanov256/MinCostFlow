@@ -10,41 +10,23 @@ public class Vertex {
     private String name;
     private int seq;
     private boolean isVisited;
-    private double distance;
+    private Double distance;
     private List<Vertex> parents;
-    private List<Vertex> children;
-    private Vertex parent;
-    private double pi;
-    private double nodeBalance;
-    private double nodeImbalance;
-    private Edge currentEdge;
     private List<Edge> edges;
-    private Parent parentClass;
+    private Parent parent;
 
     public Vertex(String name)
     {
         this.name = name;
         this.parents = new ArrayList<>();
-        this.children = new ArrayList<>();
-        this.nodeBalance = 0;
     }
 
-    public Parent getParentClass() {
-        return parentClass;
+    public Parent getParent() {
+        return parent;
     }
 
-    public void setParentClass(Parent parentClass) {
-        this.parentClass = parentClass;
-    }
-
-    public boolean removeChild(Vertex child)
-    {
-        return this.children.remove(child);
-    }
-
-    public void addChild(Vertex child)
-    {
-        this.children.add(child);
+    public void setParent(Parent parent) {
+        this.parent = parent;
     }
 
     public boolean removeParent(Vertex parent)
@@ -89,11 +71,11 @@ public class Vertex {
         isVisited = visited;
     }
 
-    public double getDistance() {
+    public Double getDistance() {
         return distance;
     }
 
-    public void setDistance(double distance) {
+    public void setDistance(Double distance) {
         this.distance = distance;
     }
 
@@ -103,54 +85,6 @@ public class Vertex {
 
     public void setParents(List<Vertex> parents) {
         this.parents = parents;
-    }
-
-    public List<Vertex> getChildren() {
-        return children;
-    }
-
-    public void setChildren(List<Vertex> children) {
-        this.children = children;
-    }
-
-    public Vertex getParent() {
-        return parent;
-    }
-
-    public void setParent(Vertex parent) {
-        this.parent = parent;
-    }
-
-    public double getPi() {
-        return pi;
-    }
-
-    public void setPi(double pi) {
-        this.pi = pi;
-    }
-
-    public double getNodeBalance() {
-        return nodeBalance;
-    }
-
-    public void setNodeBalance(double nodeBalance) {
-        this.nodeBalance = nodeBalance;
-    }
-
-    public double getNodeImbalance() {
-        return nodeImbalance;
-    }
-
-    public void setNodeImbalance(double nodeImbalance) {
-        this.nodeImbalance = nodeImbalance;
-    }
-
-    public Edge getCurrentEdge() {
-        return currentEdge;
-    }
-
-    public void setCurrentEdge(Edge currentEdge) {
-        this.currentEdge = currentEdge;
     }
 
     public List<Edge> getEdges() {

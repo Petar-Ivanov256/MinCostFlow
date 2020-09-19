@@ -3,10 +3,10 @@ package com.project.opticost.algorithm;
 import java.math.BigDecimal;
 
 public class ResultEdge {
-    String fromCity;
-    String toCity;
-    BigDecimal price;
-    Integer flow;
+   private String fromCity;
+   private String toCity;
+   private BigDecimal price;
+   private Integer flow;
 
     public ResultEdge(String fromCity, String toCity, BigDecimal price, Integer flow) {
         this.fromCity = fromCity;
