@@ -5,9 +5,9 @@ import com.project.opticost.db.model.Road;
 import java.math.BigDecimal;
 
 public class MinCostResultRequestEntity {
-    Road edge;
-    BigDecimal price;
-    Integer flow;
+    private Road edge;
+    private BigDecimal price;
+    private Integer flow;
 
     public MinCostResultRequestEntity(Road edge, BigDecimal price, Integer flow) {
         this.edge = edge;

@@ -1,10 +1,10 @@
 package com.project.opticost.utils.requests.helpers;
 
 public class MultiCostRequestEntity {
-    String selectedPlan;
-    String fromCity;
-    String toCity;
-    Integer cargo;
+    private String selectedPlan;
+    private String fromCity;
+    private String toCity;
+    private Integer cargo;
 
     public String getSelectedPlan() {
         return selectedPlan;
