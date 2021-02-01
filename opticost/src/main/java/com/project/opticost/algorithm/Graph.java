@@ -248,7 +248,7 @@ public class Graph {
         while (queue.size() != 0) {
             Vertex curr = ((ArrayDeque<Vertex>) queue).removeFirst();
             for (Vertex v : this.listOfVertices) {
-                // Creates fake flow for not connected vertices based on the BFS implementation
+                // Gets flow or creates fake one for not connected vertices
                 double flow = residualGraph.get(curr).stream()
                         .filter(x -> x.getTo().equals(v) && x.getFlow() > 0)
                         .findAny().orElse(new ResidualEdge(curr, v, -1, BigDecimal.ZERO, false)).getFlow();

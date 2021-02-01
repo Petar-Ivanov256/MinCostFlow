@@ -17,7 +17,6 @@ $(document).ready(function () {
 
 init();
 
-
 function checkWidth() {
 
     if ($(window).width() < 1150) {
@@ -121,7 +120,6 @@ function processFile() {
             processData: false,
             contentType: false,
             success: function (data) {
-                // drawRoadsAndCities(data, false)
                 selectedPlan = data;
                 plans.push(data);
                 onPlanChange(true);
