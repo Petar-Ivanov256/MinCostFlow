@@ -79,4 +79,13 @@ public class CityService extends AbstractService<City,Long> {
             }
         }
     }
+
+    public City createCityWithCoordinates(String name, Integer xCoord, Integer yCoord){
+        City city = new City();
+        city.setCityName(name);
+        city.setxCoord(xCoord);
+        city.setyCoord(yCoord);
+
+        return city;
+    }
 }

@@ -34,6 +34,14 @@ public class Graph {
         }
     }
 
+    public List<Edge> getListOfEdges() {
+        return listOfEdges;
+    }
+
+    public List<Vertex> getListOfVertices() {
+        return listOfVertices;
+    }
+
     private Edge updateEdges(Edge edge) {
         edge = this.updateVertices(edge);
 

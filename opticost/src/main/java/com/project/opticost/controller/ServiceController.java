@@ -105,11 +105,32 @@ public class ServiceController {
         List<Road> result = new ArrayList<>();
 
         Plan existingPlan = planService.findByPlanName(multipartFile.getOriginalFilename());
-        if(existingPlan != null){
+        if (existingPlan != null) {
             planService.getRepo().delete(existingPlan);
         }
         Plan plan = new Plan();
         plan.setPlanName(multipartFile.getOriginalFilename());
+
+        Set<City> cities = new HashSet<>();
+        Integer xCoord = 0;
+        Integer yCoord = 0;
+        for (int i = 1; i < lines.size(); i++) {
+            String[] content = lines.get(i).split(",");
+            String fromCityName = content[0].trim();
+            String toCityName = content[1].trim();
+
+            City from = cityService.createCityWithCoordinates(fromCityName, xCoord, yCoord);
+            City to = cityService.createCityWithCoordinates(toCityName, xCoord + 50, yCoord);
+            cities.add(from);
+            cities.add(to);
+
+            xCoord += 50;
+            if (xCoord % 1000 == 0){
+                yCoord += 1000;
+            }
+        }
+
+        cityService.saveAll(cities);
 
         for (int i = 1; i < lines.size(); i++) {
             String[] content = lines.get(i).split(",");
@@ -117,8 +138,8 @@ public class ServiceController {
             String toCityName = content[1].trim();
             Integer capacity = Integer.parseInt(content[2].trim());
             BigDecimal price = new BigDecimal(content[3].trim());
-            City fromCity = cityService.createCityFromName(fromCityName);
-            City toCity = cityService.createCityFromName(toCityName);
+            City fromCity = cityService.findByCityName(fromCityName);
+            City toCity = cityService.findByCityName(toCityName);
 
             Road edge = new Road();
             edge.setFromCity(fromCity);
@@ -148,7 +169,7 @@ public class ServiceController {
             if (cityService.checkIfCityIsPresent(plan, run.getFromCity()) && cityService.checkIfCityIsPresent(plan, run.getToCity())) {
                 fromCity = new Vertex(run.getFromCity());
                 toCity = new Vertex(run.getToCity());
-            }else {
+            } else {
                 throw new CitiesNotInPlanException("Corrupted request: used cities are not in the Plan");
             }
 
@@ -186,7 +207,7 @@ public class ServiceController {
             City from = cityService.findByCityName(redge.getFromCity());
             City to = cityService.findByCityName(redge.getToCity());
             Road road = roadService.findRoadByFromCityAndToCityAndPlan(from, to, plan);
-            if(road == null){
+            if (road == null) {
                 throw new ResultRoadNotFoundInTheDatabaseException("Corrupted result: mismatch between the database and the result");
             }
             result.add(new MinCostResultRequestEntity(road, redge.getPrice(), redge.getFlow()));
