@@ -320,7 +320,7 @@ public class Graph {
                     BigDecimal price = BigDecimal.valueOf(e.getCapacity() * e.getPrice().negate().doubleValue()).setScale(2, RoundingMode.HALF_UP);
                     minCostFlow = minCostFlow.add(price);
 
-                    System.out.println(e.getTo() + " -> " + e.getFrom() + " - Flow: " + e.getCapacity() +
+                    System.out.println(e.getTo().getName() + " -> " + e.getFrom().getName() + " - Flow: " + e.getCapacity() +
                             " / Price: " + price.doubleValue());
                 }
 

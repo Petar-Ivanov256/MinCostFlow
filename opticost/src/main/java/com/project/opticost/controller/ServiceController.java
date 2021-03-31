@@ -112,21 +112,36 @@ public class ServiceController {
         plan.setPlanName(multipartFile.getOriginalFilename());
 
         Set<City> cities = new HashSet<>();
+        List<String> names = new ArrayList<>();
         Integer xCoord = 0;
         Integer yCoord = 0;
+        int cnt = 0;
         for (int i = 1; i < lines.size(); i++) {
             String[] content = lines.get(i).split(",");
             String fromCityName = content[0].trim();
             String toCityName = content[1].trim();
 
-            City from = cityService.createCityWithCoordinates(fromCityName, xCoord, yCoord);
-            City to = cityService.createCityWithCoordinates(toCityName, xCoord + 50, yCoord);
-            cities.add(from);
-            cities.add(to);
 
-            xCoord += 50;
-            if (xCoord % 1000 == 0){
-                yCoord += 1000;
+            if (!names.contains(fromCityName)){
+                City from = cityService.createCityWithCoordinates(fromCityName, xCoord, yCoord);
+                xCoord += 50;
+                cnt += 1;
+                names.add(fromCityName);
+                cities.add(from);
+            }
+
+            if (!names.contains(toCityName)){
+                City to = cityService.createCityWithCoordinates(toCityName, xCoord, yCoord);
+                xCoord += 50;
+                cnt += 1;
+                names.add(toCityName);
+                cities.add(to);
+            }
+
+            if (cnt >= 9){
+                yCoord += 50;
+                xCoord = 0;
+                cnt = 0;
             }
         }
 
