@@ -9,13 +9,13 @@ public class RandomGraphGenerator {
     private HashMap<Integer, Vertex> vertices = new HashMap<>();
     private HashSet<Edge> edges = new HashSet<>();
     private List<String> fileEdges = new ArrayList<>();
-    private String NAME_PREFIX = "bex";
+    private String NAME_PREFIX = "";
 
     public Graph generateGraph(int numberOfVertices, double inclusionProbability) {
         Graph g = new Graph();
-        for (int i = 1; i <= numberOfVertices; i++) {
+        for (int i = 0; i <= numberOfVertices; i++) {
             Vertex from = getVertex(i);
-            for (int j = 1; j <= numberOfVertices; j++) {
+            for (int j = 0; j <= numberOfVertices; j++) {
                 Vertex to = getVertex(j);
                 Integer capacity = new Random().nextInt(50);
                 BigDecimal price = BigDecimal.valueOf(new Random().nextInt(50));

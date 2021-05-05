@@ -9,15 +9,15 @@ import java.util.List;
 public class GraphLimitsTester {
     public static void main(String[] args) throws Exception {
         RandomGraphGenerator rgg = new RandomGraphGenerator();
-        int n = 500;
-        double prob = 0.15d;
+        int n = 60;
+        double prob = 0.05d;
 
         Graph g = rgg.generateGraph(n, prob);
         System.out.println("Finish generating the graph");
         System.out.println("Number of vertices: " + g.getListOfVertices().size());
         System.out.println("Number of edges: " + g.getListOfEdges().size());
         long startTime = System.nanoTime();
-        g.minCostFlowCycleCancel(new Vertex("1"), new Vertex(String.valueOf(n)), 100);
+        g.minCostFlowCycleCancel(new Vertex("0"), new Vertex(String.valueOf(n)), 40);
         long stopTime = System.nanoTime();
         long timeElapsed = stopTime - startTime;
         System.out.println("Execution time in milliseconds : " + timeElapsed / 1000000);

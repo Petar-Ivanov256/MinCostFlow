@@ -111,34 +111,40 @@ public class ServiceController {
         Plan plan = new Plan();
         plan.setPlanName(multipartFile.getOriginalFilename());
 
-        Set<City> cities = new HashSet<>();
+
         List<String> names = new ArrayList<>();
-        Integer xCoord = 0;
-        Integer yCoord = 0;
-        int cnt = 0;
-        for (int i = 1; i < lines.size(); i++) {
+        for (int i = 0; i < lines.size(); i++) {
             String[] content = lines.get(i).split(",");
             String fromCityName = content[0].trim();
             String toCityName = content[1].trim();
 
-
-            if (!names.contains(fromCityName)){
-                City from = cityService.createCityWithCoordinates(fromCityName, xCoord, yCoord);
-                xCoord += 50;
-                cnt += 1;
+            if (!names.contains(fromCityName)) {
                 names.add(fromCityName);
-                cities.add(from);
             }
 
-            if (!names.contains(toCityName)){
-                City to = cityService.createCityWithCoordinates(toCityName, xCoord, yCoord);
-                xCoord += 50;
-                cnt += 1;
+            if (!names.contains(toCityName)) {
                 names.add(toCityName);
-                cities.add(to);
             }
+        }
 
-            if (cnt >= 9){
+        Collections.sort(names, new Comparator<String>() {
+            @Override
+            public int compare(String c1, String c2) {
+                return  Integer.valueOf(c1).compareTo(Integer.valueOf(c2));
+            }
+        });
+
+        List<City> cities = new ArrayList<>();
+        Integer xCoord = 0;
+        Integer yCoord = 0;
+        int cnt = 0;
+        for (int i = 0; i < names.size(); i++) {
+            City from = cityService.createCityWithCoordinates(names.get(i), xCoord, yCoord);
+            xCoord += 50;
+            cnt += 1;
+            cities.add(from);
+
+            if (cnt >= 9) {
                 yCoord += 50;
                 xCoord = 0;
                 cnt = 0;
@@ -147,7 +153,7 @@ public class ServiceController {
 
         cityService.saveAll(cities);
 
-        for (int i = 1; i < lines.size(); i++) {
+        for (int i = 0; i < lines.size(); i++) {
             String[] content = lines.get(i).split(",");
             String fromCityName = content[0].trim();
             String toCityName = content[1].trim();
